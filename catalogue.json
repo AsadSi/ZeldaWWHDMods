@@ -85,6 +85,7 @@
       "id": "dragon",
       "name": "Call of the Sky",
       "description": "SDK v2 example prototype: an optional Dragon Roost song quest and Valoo ride across the Great Sea.",
+      "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],

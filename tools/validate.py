@@ -37,6 +37,7 @@ def metadata(index):
         require(re.fullmatch('[0-9a-f]{64}', download['sha256']), 'Invalid package SHA-256')
         require(type(download['size']) is int and 0 < download['size'] <= 256 * 1024 * 1024, 'Invalid package size')
         require(any(step.get('type') == 'build_guest_mod' for step in entry['setup']), 'Missing guest build setup')
+        require(type(entry.get('experimental', False)) is bool, 'Experimental flag must be true or false')
         result[ident] = {key: value for key, value in entry.items() if key != 'downloads'}
     return result
 
@@ -60,6 +61,8 @@ def validate(directory, root_index=None):
             manifest = json.loads(bundle.read('manifest.json'))
             for key in ['id', 'version', 'kind', 'setup']:
                 require(manifest.get(key) == entry[key], 'Manifest/catalogue mismatch: ' + key)
+            # Untested mods: the port hides them unless the player opts in and backs up saves before enabling.
+            require(manifest.get('experimental', False) is entry.get('experimental', False), 'Manifest/catalogue mismatch: experimental')
             require([manifest['author']] == entry['authors'], 'Manifest author mismatch')
             require(manifest.get('game_id') == 'wwhd-usa', 'Guest authoring addresses must target USA')
             require([dep['id'] for dep in manifest.get('dependencies', [])] == entry['requires'], 'Dependency mismatch')

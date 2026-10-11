@@ -108,6 +108,12 @@ version, supported builds, requirements, minimum port version and setup list. Th
 `kind`, `version` and `setup` fields must match the manifest. Do not add `downloads`, URLs,
 sizes or hashes, and do not edit generated `index.json`.
 
+Mark an untested mod, or one that can break the game or a save, with `"experimental": true` in
+both the manifest and its catalogue entry (the packager and validator require them to agree;
+omit it or use `false` otherwise). The port hides experimental mods unless the player turns on
+**Show experimental mods**, labels them, warns before enabling one and backs up the player's
+saves first. Remove the flag once the mod has been verified.
+
 For original artwork, declare `"art_generator": "generate_art.py"` in that catalogue entry.
 The reviewed pure Python module exports `generate()`, returning a dictionary of flat PNG
 filenames to PNG bytes. The packager audits it, executes it during a trusted build and

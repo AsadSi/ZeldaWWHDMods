@@ -136,6 +136,7 @@ def build(sdk, out, clang, lld, base_url, channel='devel', revision=None):
         entry={key:value for key,value in declared[name].items() if key!='art_generator'}
         for key in ('id','kind','version','setup'):
             if entry.get(key)!=manifest.get(key): raise ValueError('Source metadata/manifest mismatch: '+key)
+        if entry.get('experimental',False) is not manifest.get('experimental',False): raise ValueError('Source metadata/manifest mismatch: experimental')
         entry['downloads']={'all':dict(url=base_url+'/'+archive.name,size=len(data),sha256=hashlib.sha256(data).hexdigest())}
         entries.append(entry)
     (out / 'index.json').write_text(json.dumps(dict(format_version=1, mods=entries), indent=2) + '\n')

@@ -28,6 +28,10 @@ with tempfile.TemporaryDirectory(prefix='mod-catalogue-check-') as temporary:
     (root / 'index.json').write_text(json.dumps(value))
     rejects(lambda: validate(root))
     value = json.loads(original)
+    value['mods'][0]['experimental'] = not value['mods'][0].get('experimental', False)
+    (root / 'index.json').write_text(json.dumps(value))
+    rejects(lambda: validate(root))
+    value = json.loads(original)
     value['mods'][0]['downloads']['all']['url'] = 'http://example.invalid/package.zip'
     (root / 'index.json').write_text(json.dumps(value))
     rejects(lambda: validate(root))
@@ -45,4 +49,4 @@ with tempfile.TemporaryDirectory(prefix='mod-catalogue-check-') as temporary:
     validate(root,authored)
     (root / 'unexpected.zip').write_bytes(b'authored invalid extra package')
     rejects(lambda: validate(root))
-print('Catalogue checksum, manifest version, insecure URL and extra-artifact checks passed')
+print('Catalogue checksum, manifest version, experimental flag, insecure URL and extra-artifact checks passed')

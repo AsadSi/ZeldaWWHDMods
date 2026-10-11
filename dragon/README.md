@@ -20,6 +20,10 @@ The synthesized song melody is omitted. The game sound calls used for chimes
 do not provide an established interface for this custom melody. See
 [the proposed generic audio service](../docs/audio-stream-service.md).
 
+This mod is marked experimental: the port lists it only with **Show experimental mods** on,
+warns before enabling it and backs up your saves first (restore them in Mods → Save backups).
+Do not rely on saves made while it is active.
+
 This example remains a prototype. USA/EU Metal/Vulkan timing checks, cancellation,
 boat/leaf recovery, occupied-neighbour save-slot preservation and same-run state
 restoration passed within the documented test fixtures. Quest and ride checks
