@@ -31,9 +31,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/devel-58687152b0240b98f952a9c18888d6bcf1047ab4/dragon.zip",
-          "size": 54362,
-          "sha256": "2c375ecc08407a012801f5ea01fafb2739a39c60da9397d07a2715a78166b851"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/dragon.zip",
+          "size": 54358,
+          "sha256": "9619b8888b00196d6cc70b82a67b84d81db163f6434f5f249eda89d02cd603ff"
         }
       }
     },
@@ -89,9 +89,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/devel-58687152b0240b98f952a9c18888d6bcf1047ab4/gc-minimap.zip",
-          "size": 30360,
-          "sha256": "696ab4d37c4be6aedb50260fe005141ca89bcfc1b753f87f4ca11c20ca880417"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/gc-minimap.zip",
+          "size": 30354,
+          "sha256": "8f635f697efeb9c8417d6a36a9f89348da5e7b4b02186e435b71df749808c6d4"
         }
       }
     },
@@ -124,9 +124,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/devel-58687152b0240b98f952a9c18888d6bcf1047ab4/heart-ticker.zip",
-          "size": 8525,
-          "sha256": "b22b07fdc08258dc9f46e4a3223b0f66b333fcec0d25dbd6a6965012821b214e"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/heart-ticker.zip",
+          "size": 8519,
+          "sha256": "6f9cedd52d88a8fa625e9a384c2a398dc8c9af55e3bca7e59e15954da0208fcd"
         }
       }
     }
