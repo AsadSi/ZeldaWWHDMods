@@ -87,7 +87,8 @@ A minimal manifest is:
   "id": "my-mod",
   "name": "My mod",
   "version": "0.1.0",
-  "game_id": "wwhd-usa",
+  "game_id": "wwhd",
+  "minimum_manager_version": "1.5.0",
   "kind": "guest",
   "guest": {"api_version": 1, "elf": "mod.elf"},
   "author": "Your name",
@@ -124,7 +125,11 @@ import arbitrary local code, access the network or start other programs.
 The `build_guest_mod` step translates the packaged PowerPC ELF into native code for the
 player's installation. Catalogue CI performs the earlier guest C → PowerPC ELF compilation.
 Modders use canonical USA SDK addresses for both USA and European installs; the port maps
-supported symbols for Europe and refuses missing mappings. Keep `game_id` as `wwhd-usa`.
+supported symbols for Europe and refuses missing mappings. Set `game_id` to `wwhd` (this game,
+any region) with `"minimum_manager_version": "1.5.0"`: the port's mod manager 1.5 introduced
+the region-neutral ID, and an older port then says "Requires mod manager 1.5.0" instead of
+"targets another game". The port still loads older manifests with `wwhd-usa`, but the validator
+only accepts `wwhd` for catalogue packages.
 Increase `version` for each update intended for players.
 
 ## 3. Write the code

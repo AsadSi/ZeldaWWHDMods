@@ -20,6 +20,11 @@ def https(value):
             and all(ord(c) > 32 and ord(c) != 127 and c != '\\' for c in value))
 
 
+def manager_version(text):
+    match = re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', text or '')
+    return tuple(int(part) for part in match.groups()) if match else (0, 0, 0)
+
+
 def metadata(index):
     require(index.get('format_version') == 1 and isinstance(index.get('mods'), list), 'Invalid catalogue format')
     result = {}
@@ -64,7 +69,11 @@ def validate(directory, root_index=None):
             # Untested mods: the port hides them unless the player opts in and backs up saves before enabling.
             require(manifest.get('experimental', False) is entry.get('experimental', False), 'Manifest/catalogue mismatch: experimental')
             require([manifest['author']] == entry['authors'], 'Manifest author mismatch')
-            require(manifest.get('game_id') == 'wwhd-usa', 'Guest authoring addresses must target USA')
+            # this game in any region (port mod manager 1.5); "wwhd-usa" is accepted from older manifests by the port,
+            # but catalogue packages declare "wwhd" together with the manager version that understands it
+            require(manifest.get('game_id') == 'wwhd', 'game_id must be "wwhd"')
+            require(manager_version(manifest.get('minimum_manager_version', '')) >= (1, 5, 0),
+                    'minimum_manager_version must be at least 1.5.0 (game_id "wwhd")')
             require([dep['id'] for dep in manifest.get('dependencies', [])] == entry['requires'], 'Dependency mismatch')
             elf = bundle.read(manifest['guest']['elf'])
             require(elf[:6] == b'\x7fELF\x01\x02' and elf[18:20] == b'\x00\x14', 'Not a big-endian PowerPC ELF')

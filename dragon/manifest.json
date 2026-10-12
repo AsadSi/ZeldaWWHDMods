@@ -3,7 +3,7 @@
   "id": "dragon",
   "name": "Call of the Sky",
   "version": "0.2.0",
-  "game_id": "wwhd-usa",
+  "game_id": "wwhd",
   "kind": "guest",
   "guest": {
     "api_version": 1,
@@ -13,7 +13,7 @@
   "author": "ZeldaWWHDRecomp contributors",
   "description": "SDK v2 example prototype: an optional Dragon Roost song quest and Valoo ride across the Great Sea.",
   "experimental": true,
-  "minimum_manager_version": "1.3.0",
+  "minimum_manager_version": "1.5.0",
   "setup": [
     {
       "id": "build",
