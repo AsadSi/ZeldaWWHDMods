@@ -10,6 +10,11 @@ on:
         description: Absolute HTTPS release download root (no trailing channel/tag)
         required: true
         default: https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download
+      channel:
+        description: Package channel. "main" builds main-<source commit> packages from tested devel source S for promotion (docs/review-checklist.md); main itself never moves to S
+        type: choice
+        options: [devel, main]
+        default: devel
 permissions:
   contents: read
 jobs:
@@ -22,6 +27,11 @@ jobs:
         env:
           BUILD_REF: ${{ github.ref_name }}
         run: test "$BUILD_REF" = main || test "$BUILD_REF" = devel
+      - name: Main-channel promotion builds come from devel or main only
+        if: github.event_name == 'workflow_dispatch' && inputs.channel == 'main'
+        env:
+          BUILD_REF: ${{ github.ref_name }}
+        run: test "$BUILD_REF" = devel || test "$BUILD_REF" = main
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -70,14 +80,14 @@ jobs:
           python3 tools/test_package.py
       - name: Build and verify packages
         env:
-          CHANNEL: ${{ github.ref_name == 'main' && 'main' || 'devel' }}
+          CHANNEL: ${{ (github.ref_name == 'main' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'main')) && 'main' || 'devel' }}
           HOSTING_BASE: ${{ inputs.hosting_base || vars.MOD_PACKAGE_BASE || 'https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download' }}
         run: python3 tools/package.py --sdk build/sdk --out build/packages --channel "$CHANNEL" --base-url "$HOSTING_BASE"
       - name: Test catalogue artifact validation
         run: python3 tools/test_validate.py build/packages
       - uses: actions/upload-artifact@v4
         with:
-          name: guest-mod-catalogue-${{ github.ref_name == 'main' && 'main' || 'devel' }}-${{ github.sha }}
+          name: guest-mod-catalogue-${{ (github.ref_name == 'main' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'main')) && 'main' || 'devel' }}-${{ github.sha }}
           path: |
             build/packages/*.zip
             build/packages/index.json

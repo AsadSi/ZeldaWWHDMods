@@ -18,7 +18,7 @@ Set `MOD_PACKAGE_BASE` once to the HTTPS package-download root (default: GitHub 
 
 Keep `catalogue.json` as authored metadata; `index.json` is generated delivery metadata. Never move main to a testing commit whose index references devel packages, even temporarily. Promotion is prepared before the single main ref update:
 
-1. Identify reviewed, tested devel source commit S and verify that the current main tip is its ancestor. Use a clean checkout of S to build main-channel packages. The immutable asset tag is `main-S`, where S is the full source commit, not the later metadata commit.
+1. Identify reviewed, tested devel source commit S and verify that the current main tip is its ancestor. Build main-channel packages from S: dispatch the packages workflow on `devel` (at S) with `channel: main`, or use a clean checkout of S locally. The immutable asset tag is `main-S`, where S is the full source commit, not the later metadata commit.
 2. Stage the verified packages at that immutable hosting location through the lead-controlled publication process. Verify every absolute URL, size, hash, manifest and package guard before changing main. Keep the generated main index together with these verified artifacts.
 3. Create publish commit P as a direct child of S, changing only `index.json` to that generated main index. Verify that P differs from S only in delivery metadata and that old main is an ancestor of P. This separation avoids a hash cycle: packages name tested source S; P adds their hashes and URLs and therefore has a different commit ID.
 4. Fast-forward main directly from its old tip to P in one ref move. No intermediate move to S, no merge, no moment with devel URLs on main. Main now references already-verified main-channel assets built from S.
