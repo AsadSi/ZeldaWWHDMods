@@ -4,7 +4,8 @@ This guide describes source contributions to the
 [Wind Waker HD mod catalogue](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods).
 Read [CONTRIBUTING.md](../CONTRIBUTING.md) first. The port's
 [SDK v2 guide](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp/blob/devel/docs/mod-sdk-v2.md)
-contains the API reference; this page explains this repository's build and review flow.
+contains the API reference; this repository's [Mod SDK guide](sdk/README.md) covers it for
+modders, with worked examples. This page explains this repository's build and review flow.
 
 ## Scope and contribution rules
 
@@ -134,6 +135,9 @@ as **licensed assets**:
 - Never game material: no extracted, traced or converted game textures, models, fonts or
   screenshots, and no content derived from them. Packages reject game archive signatures,
   and the maintainer reviews every asset by eye before it is merged.
+
+A small text file that belongs to the pictures, such as the Story Notebook's page layout
+(`assets/notebook.json`), may sit beside them; it is checked and reviewed like source.
 
 The packager copies these files and `ASSETS.md` unchanged into the package's `assets/`.
 
