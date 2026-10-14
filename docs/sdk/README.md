@@ -27,8 +27,8 @@ The repository's rules are in [CONTRIBUTING.md](../../CONTRIBUTING.md) and
 | Code mods, hooks, host services, HUD drawing | 0.2.11 |
 | Region-neutral `game_id` `"wwhd"` (mod manager 1.5) | 0.2.11 |
 | Story system: letters, charts, quests, the story notebook | 0.2.15 |
-| Letters declared in the manifest (`"letters"`), the notebook's open icon and page layout | 0.2.15 |
-| Mod items, items on X/Y/R, the Delivery Bag's extra pages, treasure chests for mod charts | coming in a later port version |
+| The notebook's open icon and page layout | 0.2.15 |
+| Letters declared in the manifest (`"letters"`), mod items, items on X/Y/R, the Delivery Bag's extra pages, treasure chests for mod charts | coming in a later port version |
 
 Set your catalogue entry's `port_versions.minimum` to the version that has every feature your mod
 uses. Features listed as coming in a later port version are not available yet: don't use them in a

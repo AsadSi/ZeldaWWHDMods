@@ -7,40 +7,38 @@ mod: read its `manifest.json`, `src/mod.c` and README side by side with this pag
 
 [`story-chart/`](../../story-chart/): a treasure chart on its own, no quest and no notebook entry.
 
-**The manifest** declares the chart and the letter that brings it:
+**The manifest** declares the chart:
 
 ```json
 "dependencies": [{"id": "story-notebook", "minimum_version": "0.6.0"}],
 "charts": [
   {"id": "old-map", "name": "Old map", "description": "An old map. An X marks the top of the lighthouse.",
    "place": {"x": 1759, "z": -202572}}
-],
-"letters": [
-  {"id": "map-letter", "sender": "A sailor",
-   "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
-   "encloses": ["chart:old-map"]}
 ]
 ```
 
-That is all the player needs to receive it: once Link has the Delivery Bag, the sailor's letter
-waits at any Rito postbox; after reading it, Link owns the Old map, and the MAP screen's chart list
-shows it with its X at the top of Windfall's lighthouse. The sea chart shows nothing for it yet, as
-for an owned treasure chart.
-
-**The code** finishes the chart when Link stands on its spot:
+**The code** sends the letter, gives the chart once the letter is read, and finishes the chart when
+Link stands on its spot:
 
 ```c
 s32 state = wwhd_chart_state("old-map");
+if (state == WWHD_CHART_NONE && wwhd_mail_send("map-letter", kSender, kText) == WWHD_MAIL_READ)
+    state = wwhd_chart_give("old-map");
 const fopAc_ac_c* actor = (const fopAc_ac_c*)link;
 f32 dx = actor->current.pos.x - SPOT_X, dz = actor->current.pos.z - SPOT_Z;
 if (state == WWHD_CHART_OWNED && dx * dx + dz * dz < 600.0f * 600.0f) state = wwhd_chart_finish("old-map");
 ```
 
-From then on, the game's red hand-drawn circle marks the spot on the sea chart. The save file
-remembers the chart and whether it is finished.
+Once Link has the Delivery Bag, the sailor's letter waits at any Rito postbox. Sending it again every
+step is harmless: the save file records it. After reading it, Link owns the Old map, and the MAP
+screen's chart list shows it with its X at the top of Windfall's lighthouse. The sea chart shows
+nothing for it yet, as for an owned treasure chart. Once Link stands on the spot, the game's red
+hand-drawn circle marks it on the sea chart. The save file remembers the letter, the chart and
+whether it is finished.
 
-What to take from it: a letter and a chart need no code; `charts[].place` and the sea's world
-coordinates are the same as Link's position; finishing is up to your mod.
+What to take from it: the chart is data; the letter and the chart's progress are a few idempotent
+calls from one gameplay hook; `charts[].place` and the sea's world coordinates are the same as Link's
+position. (A later port version adds a manifest `letters` block, so the letter will need no code.)
 
 ## The Story Notebook
 

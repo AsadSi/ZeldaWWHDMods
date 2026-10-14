@@ -40,23 +40,8 @@ A letter is handed out by any Rito postbox like the game's own mail, and the gam
 letter window. Delivery starts once Link has the **Delivery Bag**; until then a letter waits in the
 save file. A mod's letter needs no postage. Several waiting letters are handed out one after another.
 
-### Letters in the manifest
-
-A letter needs no code: declare it and the port sends it while your mod is on. Once Link has read
-it, he has what it encloses: your charts (`"chart:<id>"`), each given once. Such a letter makes no
-entry in the story notebook. For a letter that starts a quest, use the quest's own `letter` (see
-[Quests in the manifest](#quests-in-the-manifest)).
-
-```json
-"letters": [
-  {"id": "map-letter", "sender": "A sailor",
-   "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
-   "encloses": ["chart:old-map"]}
-]
-```
-
-Up to 8 letters per mod. Every chart a letter encloses must be declared in `charts`, and a letter's
-ID must not be a quest letter's.
+A quest's own letter is declared in the manifest (see [Quests in the manifest](#quests-in-the-manifest));
+any other letter is sent from code.
 
 ### Letters from code
 
@@ -67,7 +52,7 @@ s32 state = wwhd_mail_send("hello", "A wandering storyteller",
 
 `wwhd_mail_send(letter_id, sender, text)` puts the letter in the postbox of the loaded save file,
 unless that file already got it. Call it from a gameplay hook; calling it every logic step never
-sends it twice. Use it when the letter depends on your own conditions (Call of the Sky sends its
+sends it twice. Use it for a letter that brings a chart (the Old map) or depends on your own conditions (Call of the Sky sends its
 letter once Link has helped the dragon). `wwhd_mail_state(letter_id)` returns the state without
 sending.
 
@@ -111,15 +96,17 @@ place.
 
 - **Declaring:** `id`, `name` (up to 40 bytes, the list's caption), `description` (up to 200 bytes)
   and `place` (the X). Up to 8 per mod.
-- **Getting it:** a letter that encloses `"chart:<id>"`; a resident's talk with
+- **Getting it:** a quest's letter that encloses `"chart:<id>"`; a resident's talk with
   `"then": {"give": "chart:<id>"}`; a quest's reward (`"reward": {"chart": "chart:<id>"}`); or your
   code (`wwhd_chart_give`).
 - **Finishing it:** a quest step with `"find": "chart:<id>"` finishes the chart once the quest is
   past that step; or your code calls `wwhd_chart_finish`.
-- **A treasure chart on its own** needs no quest and no notebook entry: declare it and send it in a
-  letter, as the [Old map](examples.md#the-old-map) does. A quest whose only step is to find a chart
-  gets a warning in the log; make it a chart with a letter instead. A chart to find as one step of a
-  longer quest is fine.
+- **A treasure chart on its own** needs no quest and no notebook entry: declare it, send a letter from
+  code and give the chart once the letter is read, as the [Old map](examples.md#the-old-map) does:
+
+  ```c
+  if (wwhd_mail_send("map-letter", "A sailor", text) == WWHD_MAIL_READ) wwhd_chart_give("old-map");
+  ```
 
 ### Charts from code
 
@@ -380,6 +367,9 @@ These are not available yet. Don't use them in a mod you submit now:
 - **items on X, Y and R;**
 - **the Delivery Bag's extra pages** for mod items;
 - **treasure chests for mod charts:** a chart's `item` (what its treasure holds), salvaged like the
-  game's treasures.
+  game's treasures;
+- **letters in the manifest:** a top-level `letters` block (up to 8 letters, each `{"id", "sender",
+  "text", "encloses"}`) that the port sends while the mod is on, with no code. Until then, send such
+  letters from code.
 
 Next: [Art, layouts and licences](art.md).

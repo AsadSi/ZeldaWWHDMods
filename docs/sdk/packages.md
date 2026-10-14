@@ -76,7 +76,6 @@ These need the story system (port 0.2.15). They are explained with examples in [
 
 | Field | Meaning |
 | --- | --- |
-| `letters` | up to 8 letters the port sends while the mod is on; each `{"id", "sender", "text", "encloses"}` |
 | `charts` | up to 8 charts: `{"id", "name", "description", "place": {"x", "z"}}` |
 | `quests_format` | `1`, required with `quests` |
 | `quests` | up to 8 quests for the story notebook: `id`, `title`, `journal`, `start`, `letter`, `reward`, `steps` |
@@ -86,8 +85,9 @@ These need the story system (port 0.2.15). They are explained with examples in [
 A manifest with `quests` or `charts` depends on the Story Notebook package even if it doesn't say
 so; declare the dependency anyway, so the catalogue lists it.
 
-Coming in a later port version: an `items` block for the mod's own Delivery Bag items, and a chart's
-`item` (what its treasure chest holds). Don't use them yet.
+Coming in a later port version: a top-level `letters` block (letters sent with no code), an `items`
+block for the mod's own Delivery Bag items, and a chart's `item` (what its treasure chest holds).
+Don't use them yet.
 
 ## The catalogue entry
 

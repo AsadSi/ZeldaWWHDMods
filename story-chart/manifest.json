@@ -36,15 +36,5 @@
         "z": -202572
       }
     }
-  ],
-  "letters": [
-    {
-      "id": "map-letter",
-      "sender": "A sailor",
-      "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
-      "encloses": [
-        "chart:old-map"
-      ]
-    }
   ]
 }
