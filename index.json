@@ -9,7 +9,7 @@
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -18,7 +18,9 @@
         "USA",
         "EU"
       ],
-      "requires": [],
+      "requires": [
+        "story-notebook"
+      ],
       "setup": [
         {
           "id": "build",
@@ -27,13 +29,13 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.11"
+        "minimum": "0.2.15"
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/dragon.zip",
-          "size": 54358,
-          "sha256": "9619b8888b00196d6cc70b82a67b84d81db163f6434f5f249eda89d02cd603ff"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/dragon.zip",
+          "size": 56001,
+          "sha256": "3a25441bcf2102ebe65276358ac1f1eb0e51f989eaf376a574bf91f1f7946c36"
         }
       }
     },
@@ -89,9 +91,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/gc-minimap.zip",
-          "size": 30354,
-          "sha256": "8f635f697efeb9c8417d6a36a9f89348da5e7b4b02186e435b71df749808c6d4"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/gc-minimap.zip",
+          "size": 30318,
+          "sha256": "e6987a72a97fbf607aa633f70a1db06db66199ecb646469f6c19199cafb810c6"
         }
       }
     },
@@ -124,9 +126,121 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c01d16ff989b01f7eff2aa28110c1074a0f79fa2/heart-ticker.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/heart-ticker.zip",
           "size": 8519,
           "sha256": "6f9cedd52d88a8fa625e9a384c2a398dc8c9af55e3bca7e59e15954da0208fcd"
+        }
+      }
+    },
+    {
+      "id": "rito-letter",
+      "name": "Letter from a storyteller",
+      "description": "Example: a story mod's letter that waits in the Rito postbox and arrives once per save file.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.1.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [
+        "story-notebook"
+      ],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build the letter example for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
+      },
+      "downloads": {
+        "all": {
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/rito-letter.zip",
+          "size": 7968,
+          "sha256": "baa7d232f903795f9abb7f3f4bb1799c5d74e55af7251510c0a8e70650a0c1f4"
+        }
+      }
+    },
+    {
+      "id": "story-chart",
+      "name": "Old map",
+      "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.2.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [
+        "story-notebook"
+      ],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build the Old map example for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
+      },
+      "downloads": {
+        "all": {
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/story-chart.zip",
+          "size": 8901,
+          "sha256": "52e84a02690bcd76c17e0c6a0ac45624957028d7d300ebde8de922c58601ed4a"
+        }
+      }
+    },
+    {
+      "id": "story-notebook",
+      "name": "The Story Notebook",
+      "description": "The story system's required package: the storyteller's letter brings the story notebook, with a first small quest.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.6.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build the Story Notebook for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
+      },
+      "downloads": {
+        "all": {
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/story-notebook.zip",
+          "size": 5425738,
+          "sha256": "be522c6a0208d96a80505be2a81057d395e03fbae7e48708d44ca2f668b15828"
         }
       }
     }
