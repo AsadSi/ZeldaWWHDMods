@@ -116,11 +116,10 @@
       "id": "story-notebook",
       "name": "The Story Notebook",
       "description": "The story system's required package: the storyteller's letter brings the story notebook, with a first small quest.",
-      "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.6.0",
+      "version": "0.6.1",
       "kind": "guest",
       "licences": [
         "MPL-2.0"

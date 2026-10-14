@@ -2,7 +2,7 @@
   "format_version": 1,
   "id": "story-notebook",
   "name": "The Story Notebook",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "game_id": "wwhd",
   "kind": "guest",
   "guest": {
@@ -11,7 +11,6 @@
   },
   "author": "ZeldaWWHDRecomp contributors",
   "description": "The story system's required package: the storyteller's letter brings the story notebook, with a first small quest.",
-  "experimental": true,
   "minimum_manager_version": "1.5.0",
   "setup": [
     {
