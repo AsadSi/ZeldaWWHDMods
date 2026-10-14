@@ -1,8 +1,8 @@
 # Wind Waker HD guest mods
 
-**Writing a mod?** The [Mod SDK guide](docs/sdk/README.md) has everything you need: setup and the toolchain, the package layout, manifest fields (quests, letters, charts), the C API, art and licence rules, testing and submitting, and worked examples. [Creating a mod](docs/creating-a-mod.md) describes this repository's build and submission workflow.
+**Writing a mod?** The [Mod SDK guide](docs/sdk/README.md) has everything you need: setup and the toolchain, the package layout, manifest fields (quests, charts, the notebook), the C API, art and licence rules, testing and submitting, and worked examples. [Creating a mod](docs/creating-a-mod.md) describes this repository's build and submission workflow.
 
-SDK v2 guest mods for [ZeldaWWHDRecomp](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp). Install through **Mods → Browse**, complete the package's setup steps, enable code mods when offered, then enable and restart. Guest panels use the port's HUD API on Metal and Vulkan. The repository is currently private; the default raw catalogue URL returns 404 to players until the lead makes it public or chooses another host.
+SDK v2 guest mods for [ZeldaWWHDRecomp](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp). Install through **Mods → Browse**, complete the package's setup steps, enable code mods when offered, then enable and restart. Guest panels use the port's HUD API on Metal and Vulkan.
 
 | Mod | Current status | Behaviour |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ No game data, keys, saves or state files belong in this repository, packages or 
 WWHD_MOD_CATALOGUE=https://raw.githubusercontent.com/ZeldaWWHDRecomp/ZeldaWWHDMods/devel/index.json
 ```
 
-`catalogue.json` holds reviewed source metadata; CI generates package hashes and absolute URLs. `sdk.json` pins the exact public SDK commit. The latest pin includes new curated declarations and must be published by the lead before remote CI can fetch it. Do not interpret the base release number as proof that an older binary includes the required SDK services.
+`catalogue.json` holds reviewed source metadata; CI generates package hashes and absolute URLs. `sdk.json` pins the exact public SDK commit. Do not interpret the base release number as proof that an older binary includes the required SDK services.
 
 Against a clean checkout of that SDK, with PowerPC-capable clang/lld:
 
@@ -40,6 +40,6 @@ python3 tools/package.py --sdk path/to/pinned-port --out build/packages \
 
 The source checkout must also be clean. The hosting base is a single `MOD_PACKAGE_BASE` CI variable (or workflow input). Immutable assets live under `devel-<full-source-sha>/` or `main-<full-source-sha>/`; testing builds cannot overwrite published packages. For local tests, use the generated index and a local HTTP fixture serving the package URLs, or rewrite a copy to local paths. Never commit local paths or hand-edited download hashes.
 
-The workflow builds artifacts only. The lead uploads and verifies immutable published-channel assets, creates the generated-index metadata commit on the tested source, and fast-forwards `main` directly to that commit. It must not briefly expose testing URLs on `main`. See [the promotion checklist](docs/review-checklist.md) for the exact source-versus-index commit procedure.
+The workflow builds artifacts only. The maintainers upload and verify immutable published-channel assets, create the generated-index metadata commit on the tested source, and fast-forward `main` directly to that commit. It must not briefly expose testing URLs on `main`. See [the promotion checklist](docs/review-checklist.md) for the exact source-versus-index commit procedure.
 
-Outside contributions are source-only PRs into `devel`. Read [CONTRIBUTING.md](CONTRIBUTING.md), including setup-tool restrictions and required review. The lead configures required reviews/checks and no force pushes; nothing publishes automatically.
+Outside contributions are source-only PRs into `devel`. Read [CONTRIBUTING.md](CONTRIBUTING.md), including setup-tool restrictions and required review. The maintainers require reviews and checks and allow no force pushes; nothing publishes automatically.

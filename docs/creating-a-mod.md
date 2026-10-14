@@ -281,5 +281,5 @@ upload and verify them, then create metadata-only publish commit P descended fro
 the generated main index. Fast-forward main directly to P in one ref move; never first expose
 a devel index on main. Fast-forward devel to P before subsequent work. The source commit in
 package URLs is S, while P records their delivery metadata. See the maintainer checklist for
-ancestry checks and lead-controlled GitHub settings. Contributors never upload packages or
+ancestry checks and maintainer-controlled GitHub settings. Contributors never upload packages or
 supply hashes, and CI does not perform publication.
