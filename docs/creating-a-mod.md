@@ -68,7 +68,7 @@ my-mod/
     feature.c             optional C helper included by mod.c
   generate_art.py          optional pure original-art generator
   assets/                 optional licensed original artwork (.png, .glb), flat
-    ASSETS.md             required with assets: author, tool and licence of each file
+    ASSETS.md             required with assets: author and licence of each file
   tools/                  optional reviewed Python setup modules
 ```
 
@@ -129,8 +129,8 @@ as **licensed assets**:
 - flat files in `<mod>/assets/`, named in lowercase (`a-z`, `0-9`, `_`, `-`), only `.png` and
   `.glb` (binary glTF 2.0);
 - at most 4 MiB per file and 16 MiB per mod;
-- `assets/ASSETS.md` names every file, with its author, how it was made (for example "painted
-  by hand", or the tool used) and its licence. The author must hold the rights.
+- `assets/ASSETS.md` names every file with its author and its licence type (for example the
+  package's licence, or CC BY 4.0). The author must hold the rights.
 - Never game material: no extracted, traced or converted game textures, models, fonts or
   screenshots, and no content derived from them. Packages reject game archive signatures,
   and the maintainer reviews every asset by eye before it is merged.

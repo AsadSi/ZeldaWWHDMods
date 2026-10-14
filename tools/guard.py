@@ -19,7 +19,7 @@ PATTERNS = [re.compile(rb'WWHD_'+rb'FUNC\s*\(\s*0x'),re.compile(rb'VER'+rb'IFY\s
 MAX_FILE = 2 * 1024 * 1024
 MAX_TOTAL = 32 * 1024 * 1024
 # Licensed original artwork (images, 3D models) that cannot come from a generator: flat files in <mod>/assets/,
-# each listed with its author, tool and licence in <mod>/assets/ASSETS.md. Never game material.
+# each listed with its author and licence in <mod>/assets/ASSETS.md. Never game material.
 ASSET_MAGIC = {'.png': b'\x89PNG\r\n\x1a\n', '.glb': b'glTF\x02\x00\x00\x00'}
 ASSET_NAME = re.compile(r'[a-z0-9][a-z0-9_-]{0,63}\.(png|glb)')
 MAX_ASSET = 4 * 1024 * 1024
@@ -164,7 +164,7 @@ def scan(root,sdk,packages=False):
         for mod,files in sorted(assets.items()):
             if sum(size for _,size in files)>MAX_MOD_ASSETS: problems.append(mod+': licensed assets exceed 16 MiB')
             provenance=root/mod/'assets'/'ASSETS.md'
-            if provenance.is_symlink() or not provenance.is_file(): problems.append(mod+': assets/ASSETS.md (author, tool and licence of each asset) missing');continue
+            if provenance.is_symlink() or not provenance.is_file(): problems.append(mod+': assets/ASSETS.md (author and licence of each asset) missing');continue
             text=provenance.read_text(errors='replace')
             if not re.search(r'licen[cs]e',text,re.I): problems.append(mod+': assets/ASSETS.md must state the licence')
             for file,_ in files:
