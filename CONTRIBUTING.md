@@ -2,7 +2,7 @@
 
 Read [Creating a mod](docs/creating-a-mod.md) for the SDK v2 source layout, build and submission workflow.
 
-Submit source-only pull requests into `devel`. `main` is the published catalogue and only the maintainer promotes tested changes there. Do not submit packages, compiled files, archives, encoded blobs, extracted game material, saves or keys. Include a licence, readable guest sources, manifest and README for each mod. Original artwork must be reproducible from readable committed generator sources; generated art belongs only in build output.
+Submit source-only pull requests into `devel`. `main` is the published catalogue and only the maintainer promotes tested changes there. Do not submit packages, compiled files, archives, encoded blobs, extracted game material, saves or keys. Include a licence, readable guest sources, manifest and README for each mod. Original artwork is either reproducible from readable committed generator sources (generated art belongs only in build output), or a licensed asset: a flat `.png` or `.glb` in the mod's `assets/` folder, listed with author, tool and licence in `assets/ASSETS.md` (see [Creating a mod](docs/creating-a-mod.md)). Never game material.
 
 `catalogue.json` contains reviewed source metadata, without download URLs, hashes or sizes. CI derives packages and their download records from those sources and the pinned public SDK in `sdk.json`. Never edit generated `index.json` in a contribution. The guard rejects PR changes to generated metadata, SDK pins, all root `tools/` CI/policy entrypoints, CI-executed minimap tests, workflows and the trusted setup IO helper; maintainers integrate policy changes separately after review.
 

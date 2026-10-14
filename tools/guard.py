@@ -18,6 +18,13 @@ FORBIDDEN = (b'NOT FOR '+b'PUBLICATION', b'gabi::'+b'call<')
 PATTERNS = [re.compile(rb'WWHD_'+rb'FUNC\s*\(\s*0x'),re.compile(rb'VER'+rb'IFY\s*\(\s*0x')]
 MAX_FILE = 2 * 1024 * 1024
 MAX_TOTAL = 32 * 1024 * 1024
+# Licensed original artwork (images, 3D models) that cannot come from a generator: flat files in <mod>/assets/,
+# each listed with its author, tool and licence in <mod>/assets/ASSETS.md. Never game material.
+ASSET_MAGIC = {'.png': b'\x89PNG\r\n\x1a\n', '.glb': b'glTF\x02\x00\x00\x00'}
+ASSET_NAME = re.compile(r'[a-z0-9][a-z0-9_-]{0,63}\.(png|glb)')
+MAX_ASSET = 4 * 1024 * 1024
+MAX_MOD_ASSETS = 16 * 1024 * 1024
+MAX_ASSETS = 64 * 1024 * 1024
 SETUP_MODULES = {'argparse','struct','zlib','math','json','hashlib','binascii','collections','itertools','functools','re','safe_io','bz2','lzma','compression'}
 DANGEROUS = {'exec','eval','compile','__import__','getattr','setattr','delattr','globals','locals','vars','open','breakpoint','input','help','memoryview','FileIO','BufferedWriter','TextIOWrapper','BZ2File','LZMAFile','ZstdFile','GzipFile','FileType'}
 
@@ -29,6 +36,19 @@ def load_release_guard(sdk):
     return module
 
 
+def licensed_asset(name):
+    """<mod>/assets/<flat name>.png|.glb: the only place binary artwork may be committed."""
+    parts=Path(name).parts
+    return len(parts)==3 and parts[1]=='assets' and bool(ASSET_NAME.fullmatch(parts[2]))
+
+
+def check_asset(name, data):
+    problems=[]
+    if not data.startswith(ASSET_MAGIC[Path(name).suffix.lower()]): problems.append(name+': asset content does not match its type')
+    if len(data)>MAX_ASSET: problems.append(name+': asset exceeds 4 MiB')
+    return problems
+
+
 def check(name, data, release, source=False):
     problems=[]
     release.check_entry(name,data,problems)
@@ -36,6 +56,7 @@ def check(name, data, release, source=False):
     if suffix in EXTENSIONS: problems.append(name+': game payload extension')
     if data.startswith(MAGIC): problems.append(name+': game archive/resource magic')
     if any(marker in data for marker in FORBIDDEN) or any(pattern.search(data) for pattern in PATTERNS): problems.append(name+': non-public or recompiled material marker')
+    if source and licensed_asset(name): return problems+check_asset(name,data)
     if source:
         parts=Path(name).parts
         if any(part.startswith('.') and not (i==0 and part=='.github') for i,part in enumerate(parts)) and name!='.gitignore':
@@ -113,14 +134,18 @@ def scan(root,sdk,packages=False):
     else:
         names=subprocess.check_output(['git','-C',str(root),'ls-files','-z','--cached','--others','--exclude-standard'])
         paths=[root/name.decode() for name in names.split(b'\0') if name]
-    total=0
+    total=0;assets={}
     for path in paths:
         name=path.relative_to(root).as_posix()
         if path.is_symlink(): problems.append(name+': symlink refused'); continue
         if not path.is_file(): problems.append(name+': non-regular file refused'); continue
         size=path.stat().st_size
-        total+=size
-        if not packages and size>MAX_FILE: problems.append(name+': source exceeds 2 MiB');continue
+        if not packages and licensed_asset(name):
+            assets.setdefault(Path(name).parts[0],[]).append((Path(name).parts[2],size))
+            if size>MAX_ASSET: problems.append(name+': asset exceeds 4 MiB');continue
+        else:
+            total+=size
+            if not packages and size>MAX_FILE: problems.append(name+': source exceeds 2 MiB');continue
         if packages and size>256*1024*1024: problems.append(name+': package artifact exceeds 256 MiB');continue
         data=path.read_bytes()
         problems.extend(check(name,data,release,source=not packages))
@@ -135,6 +160,15 @@ def scan(root,sdk,packages=False):
                     problems.extend(check(name+'/'+info.filename,archive.read(info),release))
     if not packages:
         if total>MAX_TOTAL: problems.append('source inventory exceeds 32 MiB')
+        if sum(size for files in assets.values() for _,size in files)>MAX_ASSETS: problems.append('licensed asset inventory exceeds 64 MiB')
+        for mod,files in sorted(assets.items()):
+            if sum(size for _,size in files)>MAX_MOD_ASSETS: problems.append(mod+': licensed assets exceed 16 MiB')
+            provenance=root/mod/'assets'/'ASSETS.md'
+            if provenance.is_symlink() or not provenance.is_file(): problems.append(mod+': assets/ASSETS.md (author, tool and licence of each asset) missing');continue
+            text=provenance.read_text(errors='replace')
+            if not re.search(r'licen[cs]e',text,re.I): problems.append(mod+': assets/ASSETS.md must state the licence')
+            for file,_ in files:
+                if not re.search(r'(?<![A-Za-z0-9_.-])'+re.escape(file)+r'(?![A-Za-z0-9_.-])',text): problems.append(mod+'/assets/'+file+': not listed in assets/ASSETS.md')
         for manifest_path in sorted(root.glob('*/manifest.json')):
             folder=manifest_path.parent
             manifest=json.loads(manifest_path.read_text())

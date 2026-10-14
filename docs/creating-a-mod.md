@@ -16,8 +16,8 @@ adding a folder alone does not register a package.
 Contributions contain readable sources, a manifest, README and distribution licence.
 Do not commit compiled objects or libraries (`.o`, `.elf`, `.dll`, `.so`, `.dylib`, `.exe`),
 ZIPs or other archives, encoded blobs, generated image files, game files, game-derived
-assets, saves or keys. Even original PNGs must be generated from reviewed source during
-packaging. CI builds the ELF, packages and checksums; contributors supply none of those.
+assets, saves or keys. Original artwork is either generated from reviewed source during
+packaging, or committed as a licensed asset (see below). CI builds the ELF, packages and checksums; contributors supply none of those.
 Use SDK declarations to hook or call game functions; do not copy decompiled implementations.
 
 Setup tools receive the strictest review because they execute on the player's machine.
@@ -67,6 +67,8 @@ my-mod/
     feature_impl.h        optional implementation included by mod.c
     feature.c             optional C helper included by mod.c
   generate_art.py          optional pure original-art generator
+  assets/                 optional licensed original artwork (.png, .glb), flat
+    ASSETS.md             required with assets: author, tool and licence of each file
   tools/                  optional reviewed Python setup modules
 ```
 
@@ -121,6 +123,19 @@ filenames to PNG bytes. The packager audits it, executes it during a trusted bui
 places the results under `assets/`. See [the minimap generator](../gc-minimap/generate_art.py).
 Commit the readable generator, not its PNG output. It cannot read files, use setup I/O,
 import arbitrary local code, access the network or start other programs.
+
+Original artwork that can't come from a generator (painted images, 3D models) may be committed
+as **licensed assets**:
+- flat files in `<mod>/assets/`, named in lowercase (`a-z`, `0-9`, `_`, `-`), only `.png` and
+  `.glb` (binary glTF 2.0);
+- at most 4 MiB per file and 16 MiB per mod;
+- `assets/ASSETS.md` names every file, with its author, how it was made (for example "painted
+  by hand", or the tool used) and its licence. The author must hold the rights.
+- Never game material: no extracted, traced or converted game textures, models, fonts or
+  screenshots, and no content derived from them. Packages reject game archive signatures,
+  and the maintainer reviews every asset by eye before it is merged.
+
+The packager copies these files and `ASSETS.md` unchanged into the package's `assets/`.
 
 The `build_guest_mod` step translates the packaged PowerPC ELF into native code for the
 player's installation. Catalogue CI performs the earlier guest C → PowerPC ELF compilation.

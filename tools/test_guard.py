@@ -72,3 +72,31 @@ for source in ('import bz2\nbz2.BZ2File(\"outside\",\"w\")','from lzma import LZ
 
 assert check('renamed.png',b'RVZ'+bytes([1])+b'authored',release)
 assert check('renamed.png',b'WIA'+bytes([1])+b'authored',release)
+
+# Licensed original artwork: flat <mod>/assets/*.png|*.glb with matching content, listed in assets/ASSETS.md.
+from guard import licensed_asset, scan
+assert licensed_asset('notebook/assets/icon.png') and licensed_asset('notebook/assets/notebook_game.glb')
+for name in ('notebook/assets/sub/icon.png','notebook/icon.png','notebook/assets/icon.jpg','notebook/assets/Icon.PNG','notebook/assets/.icon.png'):
+    assert not licensed_asset(name),name
+assert not check('notebook/assets/icon.png',b'\x89PNG\r\n\x1a\nauthored',release,source=True)
+assert not check('notebook/assets/model.glb',b'glTF\x02\x00\x00\x00authored',release,source=True)
+assert check('notebook/assets/model.glb',b'\x89PNG\r\n\x1a\nwrong type',release,source=True)
+assert check('notebook/assets/icon.png',b'Yaz'+b'0'+b'renamed game archive',release,source=True)
+assert check('notebook/assets/icon.png',b'\x89PNG\r\n\x1a\n'+b'x'*(4*1024*1024),release,source=True)
+assert check('notebook/icon.png',b'\x89PNG\r\n\x1a\nauthored',release,source=True)
+with tempfile.TemporaryDirectory(prefix='licensed-assets-') as temporary:
+    root=Path(temporary)
+    def git(*args): return subprocess.check_output(['git','-C',str(root),*args],text=True).strip()
+    git('init','-q')
+    mod=root/'notebook';(mod/'assets').mkdir(parents=True)
+    (mod/'manifest.json').write_text('{"id":"notebook","kind":"guest"}');(mod/'README.md').write_text('authored');(mod/'LICENSE').write_text('authored')
+    (mod/'assets'/'icon.png').write_bytes(b'\x89PNG\r\n\x1a\nauthored')
+    (mod/'assets'/'model.glb').write_bytes(b'glTF\x02\x00\x00\x00authored')
+    def problems(): return [p for p in scan(root,Path(sys.argv[1])) if 'assets' in p]
+    assert any('ASSETS.md' in p and 'missing' in p for p in problems())
+    (mod/'assets'/'ASSETS.md').write_text('icon.png: by the author, drawn by hand.\n')
+    found=problems()
+    assert any('licence' in p for p in found) and any('model.glb: not listed' in p for p in found),found
+    (mod/'assets'/'ASSETS.md').write_text('icon.png and model.glb: by the author. Licence: as LICENSE.\n')
+    assert not problems(),problems()
+print('Licensed asset checks passed: location, type, size, game magic and provenance listing')

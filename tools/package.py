@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 import subprocess
 import zipfile
-from guard import scan, setup_files, setup_policy
+from guard import scan, setup_files, setup_policy, licensed_asset, check_asset
 from validate import validate, https
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +57,21 @@ def guest_sources(folder):
         if path.is_symlink() or not path.is_file(): raise ValueError('Guest source symlink/non-file refused')
         payload['src/' + path.name] = path.read_bytes()
     return source, payload
+
+def licensed_assets(folder):
+    """Committed licensed artwork (guard.licensed_asset) and its provenance file, packaged unchanged."""
+    assets=folder/'assets'
+    if not assets.is_dir(): return {}
+    result={}
+    for path in sorted(assets.iterdir()):
+        name=folder.name+'/assets/'+path.name
+        if path.name=='ASSETS.md' or licensed_asset(name):
+            if path.is_symlink() or not path.is_file(): raise ValueError('Missing/symlink asset: '+name)
+            data=path.read_bytes()
+            if path.name!='ASSETS.md' and check_asset(name,data): raise ValueError('\n'.join(check_asset(name,data)))
+            result['assets/'+path.name]=data
+    return result
+
 
 def generated_art(folder, declaration):
     if declaration is None: return {}
@@ -122,6 +137,7 @@ def build(sdk, out, clang, lld, base_url, channel='devel', revision=None):
         for tool in setup_files(folder,manifest): payload[tool]=(folder/tool).read_bytes()
         payload['mod.elf'] = elf.read_bytes()
         payload.update(owned_payload(folder, manifest))
+        payload.update(licensed_assets(folder))
         art=generated_art(folder,declared[name].get('art_generator'))
         if set(art)&set(payload): raise ValueError('Generated art collides with packaged paths')
         payload.update(art)
