@@ -5,6 +5,17 @@ typedef int s32;
 void wwhd_log(const char*);
 s32 wwhd_file_read(const char*,void*,u32);
 s32 wwhd_file_write(const char*,const void*,u32);
+typedef unsigned char u8;
+/* story record services (the port's notebook) */
+s32 wwhd_quest_state(const char*);
+s32 wwhd_quest_step(const char*,u32,const char*,const char*);
+s32 wwhd_quest_done(const char*);
+s32 wwhd_quest_set_flag(const char*,u32,s32);
+s32 wwhd_quest_flag(const char*,u32);
+/* game data: the save pointer of the test */
+extern u32 test_save_pointer;
+#define WWHD_ADDR_dComIfG_save_info_pointer 0
+#define WWHD_GAME_DATA(addr,type) (*(type*)&test_save_pointer)
 #define WWHD_GAME_ORIGINAL(addr,ret,name,params) ret name params
 #define WWHD_REPLACE(addr,ret,name,params) static ret name params
 

@@ -7,7 +7,8 @@
 #define MEDLI_TAG 0x44510000u
 #define BUTTON_A 0x8000u
 #define BUTTON_B 0x4000u
-#define BUTTON_LEFT 0x0800u
+static const char medli_letter[]=
+    "Dear Link,\nValoo has not forgotten your kindness.\nPlease come to the high entrance on\nDragon Roost Island: there is something\nhe wishes to give you.";
 static const cXyz lookout={202100,2562,-199900};
 static const cXyz chimes[3]={{197720,94,-199470},{201800,2562,-199900},{209430,1900,-202600}};
 typedef struct {u32 id;fopAc_ac_c* actor;float hit;} quest_actor;
@@ -41,7 +42,13 @@ int dragon_quest_tick(daPy_lk_c* player,u32 pressed,int idle) {
     int leaf=0;
     for(unsigned i=0;i<WWHD_COUNT_save_inventory;++i)
         leaf|=*(u8*)(save+WWHD_OFFSET_save_inventory+i)==0x34;
-    if(dragon_quest_invite(&dragon_quest,leaf,wwhd_dComIfGs_isStageBossEnemy_02520A84(3)))dragon_quest_persist();
+    dragon_quest_sync();
+    int helped=wwhd_dComIfGs_isStageBossEnemy_02520A84(3);
+    if(dragon_quest_letter_due(&dragon_quest,leaf,helped)) {
+        /* Medli's letter by Rito mail (sending again is harmless); the quest starts once it is read */
+        int letter=wwhd_mail_send("medli","Medli",medli_letter);
+        if(dragon_quest_invite(&dragon_quest,leaf,helped,letter==WWHD_MAIL_READ))dragon_quest_persist();
+    }
     float delta=dragon_tick_delta();
     if(dragon_quest.toast>0)dragon_quest.toast-=delta;
     if(dragon_quest.cooldown>0)dragon_quest.cooldown-=delta;
@@ -53,7 +60,6 @@ int dragon_quest_tick(daPy_lk_c* player,u32 pressed,int idle) {
     }
     int consumed=dragon_quest.dialog!=0;
     if(idle && !dragon_event()) {
-        if(!dragon_quest.dialog && dragon_quest.progress.phase==1 && (pressed&BUTTON_LEFT))dragon_quest.dialog=1;
         if(!dragon_quest.dialog && dragon_roost(player) && medli.actor &&
            dragon_distance_squared(dragon_actor(player)->current.pos,lookout)<450*450 && (pressed&BUTTON_A))
             dragon_quest.dialog=(int)dragon_quest.progress.phase+1;

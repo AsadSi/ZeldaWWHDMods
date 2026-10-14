@@ -48,15 +48,14 @@ static void draw(u32 list) {
         char* out=append(chime_text,mask&1?"↑ →":"? ?");out=append(out,"   ");
         out=append(out,mask&2?"↑ ←":"? ?");out=append(out,"   ");out=append(out,mask&4?"↓ →":"? ?");*out=0;
         switch(dragon_quest.dialog) {
-        case 1:title="A LETTER FROM MEDLI";line1="Valoo has not forgotten your kindness.";line2="Come to the high entrance on Dragon Roost.";line3="There is something he wishes to give you.";action="A Close letter · B Close";break;
         case 2:title="MEDLI";line1="Three ancient wind chimes have fallen silent.";line2="Find them by harbor, cliff and offshore lookout.";line3="Strike each with your sword to reveal two notes.";action="A Accept side quest · B Leave";break;
         case 3:title="MEDLI";line1="Listen to the wind chimes around the island.";line2="Climb, grapple and glide to reach all three.";line3=chime_text;action="A Continue · B Close";break;
         case 4:title="MEDLI · CALL OF THE SKY";line1="Those notes are Valoo’s promise to you.";line2="Conduct them here, and he will answer.";line3="↑ → ↑ ← ↓ → · Six beats (left stick →)";action="A Continue, then open your Wind Waker";break;
         case 5:title="MEDLI";line1="If you need his wings, let the wind carry your song.";line2="Valoo will answer your call over the Great Sea.";action="A Continue · B Close";break;
         default:
             switch(dragon_quest.progress.phase) {
-            case 0:line1="Help Valoo and obtain the Deku Leaf.";line2="An optional adventure awaits on Dragon Roost.";action="";break;
-            case 1:line1="A Rito invitation has arrived.";line2="Medli awaits at Dragon Roost’s high entrance.";action="D-pad Left Read letter · Near Medli: A Talk";break;
+            case 0:line1="Help Valoo and obtain the Deku Leaf.";line2="Then check a Rito postbox for a letter.";action="";break;
+            case 1:line1="Medli awaits at Dragon Roost’s high entrance.";line2="Her letter is in your notebook’s quest.";action="Near Medli: A Talk";break;
             case 2:line1="Restore the harbor, cliff and lookout chimes.";line2=chime_text;action="Strike a chime with your sword · Return to Medli";break;
             case 3:line1="Return to Medli at Dragon Roost’s high entrance.";line2="Play ↑ → ↑ ← ↓ → there to learn the song.";action="Near Medli: A Talk · Wind Waker: six beats";break;
             default:line1="Call of the Sky learned!";action="A Talk to Medli";break;

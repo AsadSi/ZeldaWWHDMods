@@ -57,12 +57,34 @@ static inline unsigned dragon_progress_encode(dragon_progress p, char output[25]
     output[i++]=(char)('0'+p.mask); output[i++]='\n'; output[i]=0;
     return i;
 }
+/* The quest's progress in the save's story record (the port's notebook, wwhd_quest_*): the quest's
+ * step (0 new, 1 invited, 2 accepted, 3 all chimes struck, 255 done: the song learned) and its flags
+ * 1-3 (the harbor, cliff and lookout chimes). */
+#define DRAGON_STEP_DONE 255
+static inline dragon_progress dragon_progress_from_record(int step, unsigned flags) {
+    switch (step) {
+    case 1: return (dragon_progress){1, 0};
+    case 2: return dragon_progress_normalize((dragon_progress){2, flags & 7});
+    case 3: return (dragon_progress){3, 7};
+    case DRAGON_STEP_DONE: return (dragon_progress){4, 7};
+    default: return (dragon_progress){0, 0};
+    }
+}
+static inline int dragon_record_step(dragon_progress p) {
+    p = dragon_progress_normalize(p);
+    return p.phase == 4 ? DRAGON_STEP_DONE : (int)p.phase;
+}
 static inline void dragon_quest_load(dragon_quest_state* q, int slot, dragon_progress p) {
     q->slot=slot; q->progress=dragon_progress_normalize(p);
     q->dialog=0; q->cooldown=0; q->toast=0;
 }
-static inline int dragon_quest_invite(dragon_quest_state* q, int leaf, int helped_valoo) {
-    if (q->slot<0 || q->slot>2 || q->progress.phase || !leaf || !helped_valoo) return 0;
+/* Medli's letter is due once Link has the Deku Leaf and has helped Valoo; the quest starts when Link
+ * has read it (Rito mail, wwhd_mail_*). */
+static inline int dragon_quest_letter_due(const dragon_quest_state* q, int leaf, int helped_valoo) {
+    return q->slot>=0 && q->slot<=2 && !q->progress.phase && leaf && helped_valoo;
+}
+static inline int dragon_quest_invite(dragon_quest_state* q, int leaf, int helped_valoo, int letter_read) {
+    if (!dragon_quest_letter_due(q, leaf, helped_valoo) || !letter_read) return 0;
     q->progress.phase=1; return 1;
 }
 static inline int dragon_quest_accept(dragon_quest_state* q) {

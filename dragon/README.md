@@ -8,13 +8,14 @@ restart. The pinned SDK in `../sdk.json` is required; the release number alone
 does not establish compatibility. USA and European address translation is
 performed by the port. Panels use the shared Metal/Vulkan HUD service.
 
-The quest offers a letter after obtaining the Deku Leaf and defeating the
-Dragon Roost boss. Read it with D-pad Left, meet the additional Medli on the
-island, and follow the chime and song instructions. B cancels dialogue or a
-ride request. Progress is stored separately for each of the three save slots
-in this mod's data folder. New-game initialization resets the corresponding
-progress file. Full save states retain guest quest and ride state; HUD epoch
-changes do not reload newer progress files over restored state.
+The quest "Valoo's Gratitude" is in the port's story notebook (declared in `manifest.json`). Once
+Link has the Deku Leaf and has helped Valoo, Medli's letter arrives by Rito mail at any postbox;
+reading it starts the quest. Meet Medli at Dragon Roost's high entrance and follow the chime and song
+instructions; the notebook shows the current step and, with "Show on chart", where to go. B cancels
+dialogue or a ride request. Progress is kept in the save file (the port's story record): it follows
+the Quest Log, its copies, backups and save states. Progress that earlier versions kept in this
+mod's data folder (`dragon-quest-slotN.txt`) is moved into the save once, the first time that Quest
+Log is played.
 
 The synthesized song melody is omitted. The game sound calls used for chimes
 do not provide an established interface for this custom melody. See

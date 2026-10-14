@@ -1,15 +1,26 @@
 #include <assert.h>
 #include <string.h>
 #include "../src/quest_state.h"
+static void record_mapping(void) {
+    dragon_progress p=dragon_progress_from_record(0,0); assert(p.phase==0 && p.mask==0);
+    p=dragon_progress_from_record(2,3); assert(p.phase==2 && p.mask==3);
+    p=dragon_progress_from_record(2,7); assert(p.phase==3 && p.mask==7);
+    p=dragon_progress_from_record(DRAGON_STEP_DONE,0); assert(p.phase==4 && p.mask==7);
+    p=dragon_progress_from_record(9,1); assert(p.phase==0);
+    assert(dragon_record_step((dragon_progress){4,7})==DRAGON_STEP_DONE && dragon_record_step((dragon_progress){2,1})==2);
+}
 int main(void) {
+    record_mapping();
     dragon_quest_state q={.slot=-1};
     dragon_song_state song={0};
     dragon_progress p={0,0}, decoded={4,7};
     char text[25];
-    assert(!dragon_quest_invite(&q,1,1));
+    assert(!dragon_quest_invite(&q,1,1,1));
     dragon_quest_load(&q,1,p);
-    assert(!dragon_quest_invite(&q,0,1));
-    assert(dragon_quest_invite(&q,1,1));
+    assert(!dragon_quest_invite(&q,0,1,1));
+    assert(dragon_quest_letter_due(&q,1,1) && !dragon_quest_invite(&q,1,1,0));  /* the letter not read yet */
+    assert(dragon_quest_invite(&q,1,1,1));
+    assert(!dragon_quest_letter_due(&q,1,1));
     assert(!dragon_quest_chime(&q,0));
     assert(!dragon_quest_learn(&q));
     assert(dragon_quest_accept(&q));

@@ -2,7 +2,7 @@
   "format_version": 1,
   "id": "dragon",
   "name": "Call of the Sky",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "game_id": "wwhd",
   "kind": "guest",
   "guest": {
@@ -19,6 +19,49 @@
       "id": "build",
       "type": "build_guest_mod",
       "title": "Build Call of the Sky for this installation"
+    }
+  ],
+  "quests_format": 1,
+  "quests": [
+    {
+      "id": "valoo",
+      "title": "Valoo's Gratitude",
+      "journal": "on_enable",
+      "start": {
+        "text": "After helping Valoo, with the Deku Leaf: check a Rito postbox for Medli's letter."
+      },
+      "reward": {
+        "text": "The song \"Call of the Sky\": Valoo answers you over the Great Sea"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "text": "Meet Medli at Dragon Roost Island's high entrance.",
+          "where": "Dragon Roost Island, the high entrance",
+          "place": {
+            "x": 202100,
+            "z": -199900
+          }
+        },
+        {
+          "n": 2,
+          "text": "Strike the three wind chimes: by the harbor, on the cliff and at the lookout.",
+          "where": "Dragon Roost Island",
+          "place": {
+            "x": 202100,
+            "z": -199900
+          }
+        },
+        {
+          "n": 3,
+          "text": "Return to Medli and conduct the chimes' notes.",
+          "where": "Dragon Roost Island, the high entrance",
+          "place": {
+            "x": 202100,
+            "z": -199900
+          }
+        }
+      ]
     }
   ]
 }
