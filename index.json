@@ -33,7 +33,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/dragon.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/dragon.zip",
           "size": 56001,
           "sha256": "3a25441bcf2102ebe65276358ac1f1eb0e51f989eaf376a574bf91f1f7946c36"
         }
@@ -91,7 +91,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/gc-minimap.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/gc-minimap.zip",
           "size": 30318,
           "sha256": "e6987a72a97fbf607aa633f70a1db06db66199ecb646469f6c19199cafb810c6"
         }
@@ -126,7 +126,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/heart-ticker.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/heart-ticker.zip",
           "size": 8519,
           "sha256": "6f9cedd52d88a8fa625e9a384c2a398dc8c9af55e3bca7e59e15954da0208fcd"
         }
@@ -164,7 +164,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/rito-letter.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/rito-letter.zip",
           "size": 7968,
           "sha256": "baa7d232f903795f9abb7f3f4bb1799c5d74e55af7251510c0a8e70650a0c1f4"
         }
@@ -202,7 +202,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/story-chart.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/story-chart.zip",
           "size": 8901,
           "sha256": "52e84a02690bcd76c17e0c6a0ac45624957028d7d300ebde8de922c58601ed4a"
         }
@@ -212,11 +212,10 @@
       "id": "story-notebook",
       "name": "The Story Notebook",
       "description": "The story system's required package: the storyteller's letter brings the story notebook, with a first small quest.",
-      "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.6.0",
+      "version": "0.6.1",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -238,9 +237,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-3320b3a6df21cce9e861b2d1df07d2af158ee203/story-notebook.zip",
-          "size": 5425738,
-          "sha256": "be522c6a0208d96a80505be2a81057d395e03fbae7e48708d44ca2f668b15828"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-647dca0d94e034f25174d88ecdeb47ddc127797e/story-notebook.zip",
+          "size": 5425725,
+          "sha256": "65d1bd981e8cc7fb5e7f860d6a69a78f173dda13b726f278ceda5c96a8d099c4"
         }
       }
     }
