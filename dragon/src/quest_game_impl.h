@@ -9,8 +9,10 @@
 #define BUTTON_B 0x4000u
 static const char medli_letter[]=
     "Dear Link,\nValoo has not forgotten your kindness.\nPlease come to the high entrance on\nDragon Roost Island: there is something\nhe wishes to give you.";
-static const cXyz lookout={202100,2562,-199900};
-static const cXyz chimes[3]={{197720,94,-199470},{201800,2562,-199900},{209430,1900,-202600}};
+/* Medli on the open boardwalk of the high entrance (clear of the pots by the wall); the cliff chime
+ * by the boardwalk's railing, where a player walking out of the high entrance reaches it */
+static const cXyz lookout={202150,2562,-199620};
+static const cXyz chimes[3]={{197720,94,-199470},{201900,2562,-199480},{209430,1900,-202600}};
 typedef struct {u32 id;fopAc_ac_c* actor;float hit;} quest_actor;
 static quest_actor medli={.id=~0u},gongs[3]={{.id=~0u},{.id=~0u},{.id=~0u}};
 static int creating_medli;

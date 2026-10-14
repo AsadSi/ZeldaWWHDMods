@@ -39,8 +39,8 @@
           "text": "Meet Medli at Dragon Roost Island's high entrance.",
           "where": "Dragon Roost Island, the high entrance",
           "place": {
-            "x": 202100,
-            "z": -199900
+            "x": 202150,
+            "z": -199620
           }
         },
         {
@@ -48,8 +48,8 @@
           "text": "Strike the three wind chimes: by the harbor, on the cliff and at the lookout.",
           "where": "Dragon Roost Island",
           "place": {
-            "x": 202100,
-            "z": -199900
+            "x": 202150,
+            "z": -199620
           }
         },
         {
@@ -57,8 +57,8 @@
           "text": "Return to Medli and conduct the chimes' notes.",
           "where": "Dragon Roost Island, the high entrance",
           "place": {
-            "x": 202100,
-            "z": -199900
+            "x": 202150,
+            "z": -199620
           }
         }
       ]
