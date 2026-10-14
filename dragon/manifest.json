@@ -63,5 +63,11 @@
         }
       ]
     }
+  ],
+  "dependencies": [
+    {
+      "id": "story-notebook",
+      "minimum_version": "0.6.0"
+    }
   ]
 }

@@ -89,7 +89,38 @@
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.2.0",
+      "version": "0.3.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [
+        "story-notebook"
+      ],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build Call of the Sky for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
+      }
+    },
+    {
+      "id": "story-notebook",
+      "name": "The Story Notebook",
+      "description": "The story system's required package: the storyteller's letter brings the story notebook, with a first small quest.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.6.0",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -103,11 +134,73 @@
         {
           "id": "build",
           "type": "build_guest_mod",
-          "title": "Build Call of the Sky for this installation"
+          "title": "Build the Story Notebook for this installation"
         }
       ],
       "port_versions": {
-        "minimum": "0.2.11"
+        "minimum": "0.2.15"
+      }
+    },
+    {
+      "id": "story-chart",
+      "name": "Old map",
+      "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.2.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [
+        "story-notebook"
+      ],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build the Old map example for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
+      }
+    },
+    {
+      "id": "rito-letter",
+      "name": "Letter from a storyteller",
+      "description": "Example: a story mod's letter that waits in the Rito postbox and arrives once per save file.",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.1.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [
+        "story-notebook"
+      ],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build the letter example for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.2.15"
       }
     }
   ]

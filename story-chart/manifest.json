@@ -1,0 +1,50 @@
+{
+  "format_version": 1,
+  "id": "story-chart",
+  "name": "Old map",
+  "version": "0.2.0",
+  "game_id": "wwhd",
+  "minimum_manager_version": "1.5.0",
+  "kind": "guest",
+  "guest": {
+    "api_version": 1,
+    "elf": "mod.elf"
+  },
+  "author": "ZeldaWWHDRecomp contributors",
+  "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+  "experimental": true,
+  "setup": [
+    {
+      "id": "build",
+      "type": "build_guest_mod",
+      "title": "Build the Old map example for this installation"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "story-notebook",
+      "minimum_version": "0.6.0"
+    }
+  ],
+  "charts": [
+    {
+      "id": "old-map",
+      "name": "Old map",
+      "description": "An old map. An X marks the top of the lighthouse.",
+      "place": {
+        "x": 1759,
+        "z": -202572
+      }
+    }
+  ],
+  "letters": [
+    {
+      "id": "map-letter",
+      "sender": "A sailor",
+      "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
+      "encloses": [
+        "chart:old-map"
+      ]
+    }
+  ]
+}

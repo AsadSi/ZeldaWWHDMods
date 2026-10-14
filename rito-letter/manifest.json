@@ -1,0 +1,29 @@
+{
+  "format_version": 1,
+  "id": "rito-letter",
+  "name": "Letter from a storyteller",
+  "version": "0.1.0",
+  "game_id": "wwhd",
+  "minimum_manager_version": "1.5.0",
+  "kind": "guest",
+  "guest": {
+    "api_version": 1,
+    "elf": "mod.elf"
+  },
+  "author": "ZeldaWWHDRecomp contributors",
+  "description": "Example: a story mod's letter that waits in the Rito postbox and arrives once per save file.",
+  "experimental": true,
+  "setup": [
+    {
+      "id": "build",
+      "type": "build_guest_mod",
+      "title": "Build the letter example for this installation"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "story-notebook",
+      "minimum_version": "0.6.0"
+    }
+  ]
+}
