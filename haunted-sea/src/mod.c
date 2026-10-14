@@ -114,9 +114,9 @@ static const Monster kGhostShip = {0xB2, -1, 0x00FF0000, 0};
 #define FLAG_PROC 0xAE  /* daMajuu_Flag, a cannon boat's flag */
 
 #define MAX_IDS 16
-typedef struct { u32 ids[MAX_IDS]; u32 count; double next; } Spawner;
+typedef struct { u32 ids[MAX_IDS]; double born[MAX_IDS]; u32 count; double next; } Spawner;
 static Spawner sea;                  /* the spell's monsters */
-static u32 gyorgs[MAX_IDS], gyorg_count;  /* the Gyorgs' controller and Gyorgs: their Boomerang check passes */
+static Spawner gyorgs;               /* the Gyorgs' controller and Gyorgs: their Boomerang check passes */
 static u32 gyctrl = NONE, ghost = NONE;
 static double ghost_next;
 
@@ -125,14 +125,20 @@ static int listed(const u32* ids, u32 count, u32 id) {
         if (ids[i] == id) return 1;
     return 0;
 }
-static void add(u32* ids, u32* count, u32 id) {
-    if (id != NONE && *count < MAX_IDS) ids[(*count)++] = id;
+static double now;  /* game seconds */
+static void add(Spawner* s, u32 id) {
+    if (id != NONE && s->count < MAX_IDS) s->born[s->count] = now, s->ids[s->count++] = id;
 }
 static double ram_at[MAX_IDS];
-static void prune(Spawner* s) {
+/* the ones gone; a process asked for is found only once the game has made it, so the last 3 s are kept */
+static void prune(Spawner* s, double* also) {
     u32 n = 0;
     for (u32 i = 0; i < s->count; i++)
-        if (hs_search(s->ids[i])) s->ids[n++] = s->ids[i];
+        if (now - s->born[i] < 3 || hs_search(s->ids[i])) {
+            s->ids[n] = s->ids[i], s->born[n] = s->born[i];
+            if (also) also[n] = also[i];
+            n++;
+        }
     s->count = n;
 }
 
@@ -158,7 +164,7 @@ static u32 spawn(Spawner* s, Monster m, u8* link, double dist, int behind, doubl
     const double a = behind ? heading + PI + (rnd01() - 0.5) * 1.6 : rnd01() * 2 * PI;
     const cXyz at = pos_of(link);
     const u32 id = create_at(m, link, at.x + hs_sin(a) * dist, dy, at.z + hs_cos(a) * dist, (s16)(s32)(wrap(a + PI) * 32768 / PI), parent);
-    if (s) add(s->ids, &s->count, id);
+    if (s) add(s, id);
     return id;
 }
 /* one of ours deleted; a cannon boat's flag goes with it (it reads the boat's matrix every step, and left behind it
@@ -177,7 +183,6 @@ static void delete_actor(u32 id) {
 }
 
 /* ---- the spell ---- */
-static double now;                  /* game seconds */
 static double until;                /* the spell's end (0: none) */
 static double cool;                 /* no spell before this */
 static double out_since, file_at = -1, last_roll, wet;
@@ -269,7 +274,7 @@ static int fogged;
 
 static void reset(void) {
     sea.count = 0, sea.next = 0;
-    gyorg_count = 0, gyctrl = NONE, ghost = NONE, ghost_next = 0;
+    gyorgs.count = 0, gyctrl = NONE, ghost = NONE, ghost_next = 0;
     for (u32 i = 0; i < MAX_IDS; i++) ram_at[i] = 0;
 }
 
@@ -329,21 +334,19 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, haunted_sea_step, (u32 queue)
 
     if (!(always() || until > now) || !on_sea || !settled) return;
     const cXyz at = pos_of(link);
-    prune(&sea);
-    {  /* the Gyorgs gone (their ram timers with them); the controller is kept */
-        u32 n = 0;
-        for (u32 i = 0; i < gyorg_count; i++)
-            if (gyorgs[i] == gyctrl || hs_search(gyorgs[i])) gyorgs[n] = gyorgs[i], ram_at[n] = ram_at[i], n++;
-        gyorg_count = n;
-    }
+    prune(&sea, 0);
+    prune(&gyorgs, ram_at);  /* (their ram timers with them) */
     if (now >= sea.next && sea.count < kMax[level] + (night ? 2 : 0)) {
         if (gyctrl == NONE || !hs_search(gyctrl)) {  /* the Gyorgs' controller first, Gyorgs once it exists */
             gyctrl = spawn(0, kGyCtrl, link, 0, 0, 0, NONE);
-            add(gyorgs, &gyorg_count, gyctrl);
+            add(&gyorgs, gyctrl);
+            sea.next = now + 1;  /* (it is no monster: the first one comes right after) */
+            return;
         } else if (riding && rnd() % 4 == 0) {  /* a cannon boat, bombarding from its range */
             spawn(&sea, kOship, link, 3000 + rnd() % 2500, 0, 0, NONE);
         } else if (rnd() % 2 == 0) {  /* from under the water, where they are not seen coming */
-            add(gyorgs, &gyorg_count, spawn(&sea, kGyorg, link, 900 + rnd() % 600, 0, -40, gyctrl));
+            if (gyorgs.count < MAX_IDS) ram_at[gyorgs.count] = 0;
+            add(&gyorgs, spawn(&sea, kGyorg, link, 900 + rnd() % 600, 0, -40, gyctrl));
         } else {  /* Seahats, Kargarocs and at night Poes over the water, behind him */
             static const Monster* const kDay[] = {&kSeahat, &kSeahat, &kKargaroc};
             static const Monster* const kNight[] = {&kSeahat, &kKargaroc, &kPoe, &kPoe};
@@ -369,9 +372,9 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, haunted_sea_step, (u32 queue)
      * 1 circle, 6 circle with others), so they attack him (mode 3), which gives up while he rides the boat: then they
      * circle it (their controller's clear-line flag, +0x42E + the child index +0x3C8) and each breaches to ram it
      * every 5-9 s (mode 2), kept within 2000 of him so a sailing boat does not leave them behind */
-    for (u32 i = 0; i < gyorg_count; i++) {
-        if (gyorgs[i] == gyctrl) continue;
-        u8* gy = hs_search(gyorgs[i]);
+    for (u32 i = 0; i < gyorgs.count; i++) {
+        if (gyorgs.ids[i] == gyctrl) continue;
+        u8* gy = hs_search(gyorgs.ids[i]);
         if (!gy) continue;
         const u32 mode = word(gy, 0x3CC);
         const int idle = mode == 0 || mode == 1 || mode == 6;
@@ -400,7 +403,7 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, haunted_sea_step, (u32 queue)
 /* The game makes Gyorgs (daGy_c::_create) and their controller (daGyCtrl_Create) only once Link has the Boomerang;
  * ours come before that too: while one of ours is created, the Boomerang check passes. */
 static int creating_ours;
-static int ours(u8* process) { return process && listed(gyorgs, gyorg_count, word(process, WWHD_OFFSET_actor_process_id)); }
+static int ours(u8* process) { return process && listed(gyorgs.ids, gyorgs.count, word(process, WWHD_OFFSET_actor_process_id)); }
 WWHD_HOOK(WWHD_ADDR_daGy_c___create_02167A00, gyorg_create, (void* self)) { creating_ours = ours((u8*)self); }
 WWHD_HOOK_RETURN(WWHD_ADDR_daGy_c___create_02167A00, gyorg_created, (void* self)) { (void)self, creating_ours = 0; }
 WWHD_HOOK(WWHD_ADDR_daGyCtrl_Create_0216BA8C, gyctrl_create, (void* self)) { creating_ours = ours((u8*)self); }
