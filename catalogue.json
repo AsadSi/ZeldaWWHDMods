@@ -143,12 +143,12 @@
     {
       "id": "story-chart",
       "name": "Old map",
-      "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+      "description": "Example: a treasure chart sent in a letter, with no quest: salvage its treasure like the game's own.",
       "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -168,7 +168,7 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.15"
+        "minimum": "0.3.0"
       }
     },
     {

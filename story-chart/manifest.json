@@ -2,7 +2,7 @@
   "format_version": 1,
   "id": "story-chart",
   "name": "Old map",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "game_id": "wwhd",
   "minimum_manager_version": "1.5.0",
   "kind": "guest",
@@ -11,7 +11,7 @@
     "elf": "mod.elf"
   },
   "author": "ZeldaWWHDRecomp contributors",
-  "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+  "description": "Example: a treasure chart sent in a letter, with no quest: salvage its treasure like the game's own.",
   "experimental": true,
   "setup": [
     {
@@ -30,11 +30,22 @@
     {
       "id": "old-map",
       "name": "Old map",
-      "description": "An old map. An X marks the top of the lighthouse.",
+      "description": "An old map. An X marks a spot in the open sea south-west of Windfall.",
       "place": {
-        "x": 1759,
-        "z": -202572
-      }
+        "x": -3500,
+        "z": -194000
+      },
+      "item": "game:purple_rupee"
+    }
+  ],
+  "letters": [
+    {
+      "id": "map-letter",
+      "sender": "A sailor",
+      "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
+      "encloses": [
+        "chart:old-map"
+      ]
     }
   ]
 }
