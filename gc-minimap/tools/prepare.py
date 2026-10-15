@@ -1,6 +1,11 @@
 """Prepare local-only GC sea maps; no game-derived content is distributed."""
 import json
+import os
 import struct
+import sys
+
+# Windows runs this with the embeddable Python, which doesn't put the script's folder on sys.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import formats
 import vector
 import rvz

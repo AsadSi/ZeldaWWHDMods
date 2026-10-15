@@ -14,4 +14,5 @@ Synthetic tests: `python3 -m unittest discover -s gc-minimap/tests`. Asset forma
 
 ## Changes
 
+- **0.2.2:** installs on Windows again (the preparation step couldn't find its own helper files).
 - **0.2.1:** the panel no longer stays on top of the pause menu and other menus shown on the TV.
