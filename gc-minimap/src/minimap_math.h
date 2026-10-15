@@ -43,4 +43,22 @@ static inline int minimap_decode_bounds(const unsigned char* bytes, unsigned int
     }
     return minimap_bounds_valid(b);
 }
+/* Is the snapshot from Link's step still current? The HUD callback runs once per logic pass;
+ * full_step is the port's full logic step counter (wwhd_logic_step). While the game is paused
+ * or a full-screen menu is open, Link's Execute is skipped, so a new full step begins without a
+ * capture and the panel hides. True 60 half passes don't start a new full step: Link may skip
+ * them (sailing runs at 30 Hz), so they keep the full pass's decision instead of flickering. */
+typedef struct { unsigned long long step; int started, current, captured; } minimap_freshness;
+static inline void minimap_note_capture(minimap_freshness* f) { f->captured = 1; }
+static inline int minimap_snapshot_current(minimap_freshness* f, unsigned long long full_step) {
+    if (!f->started || full_step != f->step) {
+        f->started = 1;
+        f->step = full_step;
+        f->current = f->captured;
+    } else if (f->captured) {
+        f->current = 1;
+    }
+    f->captured = 0;
+    return f->current;
+}
 #endif

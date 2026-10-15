@@ -7,6 +7,7 @@
 
 static struct { float x, z; s16 yaw; int room, visible; } snapshot;
 static struct { float x, bottom, side, opacity; int original; } options;
+static minimap_freshness freshness;
 static unsigned long long image_epoch;
 static int cached_room, initialized;
 static u32 chart, frame, marker, arrow;
@@ -81,6 +82,8 @@ static void image(u32 list, u32 handle, float x, float y, float w, float h,
 static void draw(u32 list) {
     unsigned long long epoch = wwhd_hud_epoch();
     if (epoch != image_epoch) { image_epoch=epoch; forget_images(); }
+    /* Hidden while paused or in a menu: Link's Execute didn't run for this step. */
+    if (!minimap_snapshot_current(&freshness, wwhd_logic_step())) return;
     if (!snapshot.visible || options.opacity <= 0) return;
     prepare_chart(snapshot.room);
     if (!chart) return;
@@ -118,6 +121,7 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture_minimap, (fopAc_ac_c* actor)) {
     if (!initialized) configure();
     wwhd_hud_register(draw, WWHD_HUD_TV);
     snapshot.visible=0;
+    minimap_note_capture(&freshness);
     if (options.opacity <= 0) return;
     u8* play=wwhd_play_get();
     if (!play || !actor || (u32)actor != *(u32*)(play+WWHD_PLAY_PLAYER_OFFSET) ||

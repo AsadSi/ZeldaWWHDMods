@@ -33,5 +33,25 @@ int main(void) {
     assert(!minimap_decode_bounds(bytes,17,bounds));
     unsigned char bad[16]={0};assert(!minimap_decode_bounds(bad,16,bounds));
     bad[0]=0x7f;bad[1]=0x80;assert(!minimap_decode_bounds(bad,16,bounds));
+    /* Snapshot freshness: shown only while Link's Execute ran in the current full step. */
+    minimap_freshness f={0,0,0,0};
+    assert(!minimap_snapshot_current(&f,10));            /* no capture yet */
+    for(unsigned long long step=11;step<14;++step){      /* 30 fps: one pass per step */
+        minimap_note_capture(&f);assert(minimap_snapshot_current(&f,step));
+    }
+    assert(!minimap_snapshot_current(&f,14));            /* paused: Execute skipped, hide */
+    assert(!minimap_snapshot_current(&f,15));
+    assert(!minimap_snapshot_current(&f,15));            /* repeated draw of a paused step */
+    minimap_note_capture(&f);assert(minimap_snapshot_current(&f,16)); /* unpaused */
+    /* True 60 half passes repeat the full step; Link at 30 Hz (sailing) skips them: no flicker. */
+    assert(minimap_snapshot_current(&f,16));
+    minimap_note_capture(&f);assert(minimap_snapshot_current(&f,17));
+    assert(minimap_snapshot_current(&f,17));
+    /* Link at 60 Hz captures in both passes. */
+    minimap_note_capture(&f);assert(minimap_snapshot_current(&f,18));
+    minimap_note_capture(&f);assert(minimap_snapshot_current(&f,18));
+    /* Paused after a half-pass capture: the next full step still hides. */
+    assert(!minimap_snapshot_current(&f,19));
+    assert(!minimap_snapshot_current(&f,19));
     return 0;
 }
