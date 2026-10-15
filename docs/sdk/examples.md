@@ -5,40 +5,48 @@ mod: read its `manifest.json`, `src/mod.c` and README side by side with this pag
 
 ## The Old map
 
-[`story-chart/`](../../story-chart/): a treasure chart on its own, no quest and no notebook entry.
+[`story-chart/`](../../story-chart/): a treasure chart on its own, no quest and no notebook entry,
+and nothing in code. It needs port 0.3.0.
 
-**The manifest** declares the chart:
+**The manifest** declares the chart and the letter that brings it:
 
 ```json
 "dependencies": [{"id": "story-notebook", "minimum_version": "0.6.0"}],
 "charts": [
-  {"id": "old-map", "name": "Old map", "description": "An old map. An X marks the top of the lighthouse.",
-   "place": {"x": 1759, "z": -202572}}
+  {"id": "old-map", "name": "Old map",
+   "description": "An old map. An X marks a spot in the open sea south-west of Windfall.",
+   "place": {"x": -3500, "z": -194000}, "item": "game:purple_rupee"}
+],
+"letters": [
+  {"id": "map-letter", "sender": "A sailor",
+   "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
+   "encloses": ["chart:old-map"]}
 ]
 ```
 
-**The code** sends the letter, gives the chart once the letter is read, and finishes the chart when
-Link stands on its spot:
+**What the player gets:**
 
-```c
-s32 state = wwhd_chart_state("old-map");
-if (state == WWHD_CHART_NONE && wwhd_mail_send("map-letter", kSender, kText) == WWHD_MAIL_READ)
-    state = wwhd_chart_give("old-map");
-const fopAc_ac_c* actor = (const fopAc_ac_c*)link;
-f32 dx = actor->current.pos.x - SPOT_X, dz = actor->current.pos.z - SPOT_Z;
-if (state == WWHD_CHART_OWNED && dx * dx + dz * dz < 600.0f * 600.0f) state = wwhd_chart_finish("old-map");
-```
+1. **The letter:** once Link has the Delivery Bag, the sailor's letter waits at any Rito postbox.
+   The port sends it while the mod is on, once per save file.
+2. **The MAP list:** after reading it, Link owns the Old map. The MAP screen's chart list shows it
+   after the game's charts. The sea chart shows nothing for it yet, as for an owned treasure chart.
+3. **Open the chart once:** the game's chart view shows the X at the spot, in the open sea
+   south-west of Windfall (square D2).
+4. **The light ring:** from then on, the game's ring of light marks the spot while Link sails there.
+5. **The crane:** in the ring, the grappling hook from the boat brings up the treasure chest, as for
+   the game's own treasures.
+6. **The chest:** it holds a purple rupee (the chart's `item`).
+7. **The red circle:** the chart is finished, and the game's red hand-drawn circle marks the spot on
+   the sea chart and in the chart view.
 
-Once Link has the Delivery Bag, the sailor's letter waits at any Rito postbox. Sending it again every
-step is harmless: the save file records it. After reading it, Link owns the Old map, and the MAP
-screen's chart list shows it with its X at the top of Windfall's lighthouse. The sea chart shows
-nothing for it yet, as for an owned treasure chart. Once Link stands on the spot, the game's red
-hand-drawn circle marks it on the sea chart. The save file remembers the letter, the chart and
-whether it is finished.
+The save file remembers the letter, the chart, whether it was opened and whether it is finished.
 
-What to take from it: the chart is data; the letter and the chart's progress are a few idempotent
-calls from one gameplay hook; `charts[].place` and the sea's world coordinates are the same as Link's
-position. (A later port version adds a manifest `letters` block, so the letter will need no code.)
+**The code** only logs the chart's state with `wwhd_chart_state("old-map")` (0 not yet, 1 owned, 2
+finished), which is a good way to follow the chart while testing.
+
+What to take from it: a treasure chart is data. `charts[].place` is in the sea's world coordinates,
+the same as Link's position; put the spot in open water so the boat can reach the ring. Don't wrap a
+chart in a quest whose only step is to find it: the port warns about that, and a letter does the job.
 
 ## The Story Notebook
 

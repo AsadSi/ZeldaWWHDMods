@@ -71,7 +71,7 @@ versions.
 | `wwhd_setting_get`, `wwhd_setting_changed` | read-only port settings, below |
 | `wwhd_hud_*` | drawing on screen, below |
 | `wwhd_audio_*` | bounded PCM audio streams, below |
-| `wwhd_mail_*`, `wwhd_chart_*`, `wwhd_quest_*` | letters, charts and quests: [Story mods](story.md) |
+| `wwhd_mail_*`, `wwhd_chart_*`, `wwhd_quest_*`, `wwhd_item_*` | letters, charts, quests and items (port 0.3.0): [Story mods](story.md) |
 | `memcpy`, `memmove`, `memset` | as usual |
 
 Your mod can also call any game function through `wwhd/bindings.h`.

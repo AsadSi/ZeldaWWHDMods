@@ -10,7 +10,7 @@ macOS, Windows and Linux, for the USA and European game.
 | [Setup and toolchain](setup.md) | enabling code mods in the port, installing clang/lld, a first build |
 | [Packages and the manifest](packages.md) | the package layout in this repository, every manifest field, the catalogue entry |
 | [The C API](c-api.md) | hooks and replacements, game functions and data, host services, HUD drawing, audio, limits |
-| [Story mods](story.md) | letters, charts, quests, the story notebook, talking to residents, the NPC catalogue |
+| [Story mods](story.md) | letters, treasure charts, items, quests, the story notebook, talking to residents, the NPC catalogue |
 | [Art, layouts and licences](art.md) | image and model formats, sizes, the Story Notebook's look, the licence rules for assets |
 | [Testing and submitting](testing.md) | building and installing locally, the repository's checks, the pull request |
 | [Worked examples](examples.md) | the Old map, Call of the Sky and the Story Notebook, explained |
@@ -26,13 +26,14 @@ The repository's rules are in [CONTRIBUTING.md](../../CONTRIBUTING.md) and
 | --- | --- |
 | Code mods, hooks, host services, HUD drawing | 0.2.11 |
 | Region-neutral `game_id` `"wwhd"` (mod manager 1.5) | 0.2.11 |
-| Story system: letters, charts, quests, the story notebook | 0.2.15 |
-| The notebook's open icon and page layout | 0.2.15 |
-| Letters declared in the manifest (`"letters"`), mod items, items on X/Y/R, the Delivery Bag's extra pages, treasure chests for mod charts | coming in a later port version |
+| Story system: letters, charts, quests, the story notebook with its open icon and page layout | 0.3.0 |
+| Letters declared in the manifest (`"letters"`), with no quest and no code | 0.3.0 |
+| Mod items (`"items"`, `wwhd_item_*`): icons in the game's item pictures, the Delivery Bag's extra pages, use on X, Y or R | 0.3.0 |
+| Treasure charts like the game's: the light ring, the crane, the chest with a game item or a mod item, the X at its spot in the chart view | 0.3.0 |
+| Quests shown on the chart before they start (step 1's place) | 0.3.0 |
 
-Set your catalogue entry's `port_versions.minimum` to the version that has every feature your mod
-uses. Features listed as coming in a later port version are not available yet: don't use them in a
-mod you submit now.
+Port 0.3.0 is the first release with story mods: everything in [Story mods](story.md) needs it. Set
+your catalogue entry's `port_versions.minimum` to the version that has every feature your mod uses.
 
 ## Ground rules
 

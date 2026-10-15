@@ -2,18 +2,18 @@
 
 A story mod adds a small adventure in the game's own way: a letter in the Rito postbox, a treasure
 chart, a quest in the story notebook, a resident who speaks your lines. Most of it is data in your
-manifest; your code only reports what the port can't see. Story mods need port 0.2.15 or later.
+manifest; your code only reports what the port can't see. Story mods need port 0.3.0 or later.
 
 - [The story system and the Story Notebook package](#the-story-system-and-the-story-notebook-package)
 - [Letters](#letters)
 - [Charts and markers](#charts-and-markers)
+- [Items](#items)
 - [Quests](#quests)
 - [Quests in the manifest](#quests-in-the-manifest)
 - [Talking to residents](#talking-to-residents)
 - [The King of Red Lions](#the-king-of-red-lions)
 - [The NPC catalogue](#the-npc-catalogue)
 - [Where story progress is saved](#where-story-progress-is-saved)
-- [Coming in a later port version](#coming-in-a-later-port-version)
 
 ## The story system and the Story Notebook package
 
@@ -40,8 +40,26 @@ A letter is handed out by any Rito postbox like the game's own mail, and the gam
 letter window. Delivery starts once Link has the **Delivery Bag**; until then a letter waits in the
 save file. A mod's letter needs no postage. Several waiting letters are handed out one after another.
 
-A quest's own letter is declared in the manifest (see [Quests in the manifest](#quests-in-the-manifest));
-any other letter is sent from code.
+A quest's own letter is declared with the quest (see [Quests in the manifest](#quests-in-the-manifest)).
+A letter with no quest is declared in the manifest's `letters` block, or sent from code when it
+depends on your own conditions.
+
+### Letters in the manifest
+
+A letter needs no code: declare it in `manifest.json` and the port sends it while your mod is on.
+Once Link has read it, he has what it encloses: your charts (`"chart:<id>"`) and items
+(`"item:<id>"`), each given once. Such a letter makes no entry in the story notebook.
+
+```json
+"letters": [
+  {"id": "map-letter", "sender": "A sailor",
+   "text": "Dear Link,\nI found this old map in a bottle.\nMaybe you can find what it marks.",
+   "encloses": ["chart:old-map"]}
+]
+```
+
+Up to 8 letters per mod, with the [rules for letters](#rules-for-letters) below. Every chart and item
+a letter encloses must be declared in the manifest, and a letter's ID must not be a quest letter's.
 
 ### Letters from code
 
@@ -52,7 +70,7 @@ s32 state = wwhd_mail_send("hello", "A wandering storyteller",
 
 `wwhd_mail_send(letter_id, sender, text)` puts the letter in the postbox of the loaded save file,
 unless that file already got it. Call it from a gameplay hook; calling it every logic step never
-sends it twice. Use it for a letter that brings a chart (the Old map) or depends on your own conditions (Call of the Sky sends its
+sends it twice. Use it for a letter that depends on your own conditions (Call of the Sky sends its
 letter once Link has helped the dragon). `wwhd_mail_state(letter_id)` returns the state without
 sending.
 
@@ -77,36 +95,45 @@ A letter from code encloses a green rupee.
 
 ## Charts and markers
 
-A mod's chart behaves like the game's treasure charts. While Link only owns it, the sea chart shows
-nothing for it; once it is finished, the game's red hand-drawn circle (the mark of a salvaged
-treasure) marks each of its markers' spots.
+A mod's chart works like the game's own treasure charts. While Link only owns it, the sea chart
+shows nothing for it. Once he has opened it, the game's ring of light marks its spot while he sails
+there; the grappling hook brings up a chest with the chart's item, and the chart is finished: the
+game's red hand-drawn circle (the mark of a salvaged treasure) marks the spot.
 
 ### Charts in the manifest
 
 Declared charts are charts like the game's: while Link owns one, the MAP screen's chart list shows
-it after the game's charts, with its name, and opening it shows its square's map with the X at its
-place.
+it after the game's charts, with its name, and opening it shows the game's chart view with the X at
+its spot.
 
 ```json
 "charts": [
-  {"id": "old-map", "name": "Old map", "description": "An old map. An X marks the top of the lighthouse.",
-   "place": {"x": 1759, "z": -202572}}
+  {"id": "old-map", "name": "Old map",
+   "description": "An old map. An X marks a spot in the open sea south-west of Windfall.",
+   "place": {"x": -3500, "z": -194000}, "item": "game:purple_rupee"}
 ]
 ```
 
-- **Declaring:** `id`, `name` (up to 40 bytes, the list's caption), `description` (up to 200 bytes)
-  and `place` (the X). Up to 8 per mod.
-- **Getting it:** a quest's letter that encloses `"chart:<id>"`; a resident's talk with
-  `"then": {"give": "chart:<id>"}`; a quest's reward (`"reward": {"chart": "chart:<id>"}`); or your
-  code (`wwhd_chart_give`).
-- **Finishing it:** a quest step with `"find": "chart:<id>"` finishes the chart once the quest is
-  past that step; or your code calls `wwhd_chart_finish`.
-- **A treasure chart on its own** needs no quest and no notebook entry: declare it, send a letter from
-  code and give the chart once the letter is read, as the [Old map](examples.md#the-old-map) does:
-
-  ```c
-  if (wwhd_mail_send("map-letter", "A sailor", text) == WWHD_MAIL_READ) wwhd_chart_give("old-map");
-  ```
+- **Declaring:** `id`, `name` (up to 40 bytes, the list's caption), `description` (up to 200 bytes),
+  `place` (the X and the treasure's spot) and optionally `item`. Up to 8 per mod.
+- **The chest's item:** `item` is one of your [items](#items) (`"item:<id>"`) or a game item:
+  `"game:purple_rupee"`, `"game:orange_rupee"`, `"game:silver_rupee"`, `"game:heart_piece"` or
+  `"game:heart_container"`. Without it, the chest holds an orange rupee.
+- **Getting it:** a letter that encloses `"chart:<id>"` (a [letter in the manifest](#letters-in-the-manifest)
+  or a quest's letter); a resident's talk with `"then": {"give": "chart:<id>"}`; a quest's reward
+  (`"reward": {"chart": "chart:<id>"}`); or your code (`wwhd_chart_give`).
+- **The treasure:** once Link has opened the chart in the chart list, the light ring shows at its
+  spot while he sails there. In the ring, the grappling hook from the boat works as the game's crane
+  and brings up the chest. Opening the chest gives its item and finishes the chart.
+- **Finishing it otherwise:** a quest step with `"find": "chart:<id>"` finishes the chart once the
+  quest is past that step; or your code calls `wwhd_chart_finish`.
+- **Where to put the spot:** in open water, away from islands and reefs, so the boat can reach the
+  ring. The chart view shows the part of the sea square around the spot, with the X on it, on the TV
+  and the GamePad.
+- **A treasure chart on its own** needs no quest and no notebook entry: declare the chart and a
+  letter that encloses it, as the [Old map](examples.md#the-old-map) does. A quest whose only step is
+  to find a chart gets a warning in the log: make it a chart with a letter instead. A chart to find as
+  one step of a longer quest is fine.
 
 ### Charts from code
 
@@ -131,6 +158,74 @@ They return `WWHD_CHART_NONE` (0), `WWHD_CHART_OWNED` (1), `WWHD_CHART_DONE` (2)
   per mod, 32 in all.
 - IDs follow the letter rules; marker IDs are unique within their chart.
 
+## Items
+
+A story mod can give Link its own items. They are kept in the Delivery Bag like the game's delivery
+items, but they never take one of the bag's eight places unless the player puts one there: the bag
+gets extra pages for them.
+
+```json
+"items": [
+  {"id": "old-key", "name": "Old key", "description": "A rusty key. It smells of the sea.",
+   "icon": "assets/old_key.png"},
+  {"id": "lamp", "name": "Storm lamp", "description": "Shows the way in the dark.",
+   "icon": "assets/lamp.png", "stack": 3, "use": {"action": "show"}}
+]
+```
+
+| Field | Meaning |
+| --- | --- |
+| `id` | 1 to 32 characters `a`-`z`, `0`-`9`, `-`, `_`, `.`; unique within your mod. Up to 32 items per mod |
+| `name`, `description` | what the item's Info box shows: the name up to 40 bytes, the description up to 200 bytes (line breaks allowed) |
+| `icon` | a PNG in your package, best 128 × 128 with transparency (see [Art](art.md)). The port adds it to the game's item pictures on the player's machine, so it shows in the bag and on the buttons like a game item |
+| `stack` | how many Link can carry, 1 to 254 (default 1); a give beyond it keeps the maximum |
+| `use` | optional: what using the item does. Only an item with a use can go on X, Y or R |
+
+The use actions:
+
+- `{"action": "show"}`: shows its Info box;
+- `{"action": "open_notebook"}`: opens the story notebook;
+- `{"action": "quest_step", "quest": "<quest id>", "step": 2}`: that quest of your manifest reaches
+  the step;
+- `{"action": "event"}`: your code is told (`wwhd_item_used`).
+
+**Giving items from the manifest.** A letter can enclose an item (`"encloses": ["item:old-key"]`), a
+resident's talk can give one (`"then": {"give": "item:old-key"}`), a quest's reward can be one
+(`"reward": {"item": "item:old-key"}`) and a chart's chest can hold one (`"item": "item:old-key"`).
+Every item the manifest names must be declared in `items`.
+
+**From code:**
+
+| Service | What it does |
+| --- | --- |
+| `wwhd_item_give(item, count)` | Link gets `count` of the item (up to its `stack`) |
+| `wwhd_item_take(item, count)` | takes `count`; `WWHD_ITEM_NOT_ENOUGH` (-3) if Link has fewer |
+| `wwhd_item_count(item)` | how many Link has |
+| `wwhd_item_used(item)` | for an item with the `event` use: how often the player used it since the last call |
+
+They return the count now (0 to 254) or an error: `WWHD_ITEM_INVALID` (-1: not an item of your
+manifest, or a count of 0 or over 254) or `WWHD_ITEM_NO_ROOM` (-2: no save file loaded, or its story
+record is full).
+
+```c
+s32 n = wwhd_item_give("lamp", 1);
+if (wwhd_item_count("old-key") > 0) wwhd_item_take("old-key", 1);
+if (wwhd_item_used("token") > 0) { /* the player used it since the last call */ }
+```
+
+**What the player sees.** When Link gets an item, its name and description show with the game's
+small get jingle. In the Delivery Bag window, R (or a tap on the page dots above the window) turns to
+the extra pages and L back; B returns to the game's eight places. A on an item offers Info, Use and a
+move into an empty place of the game's eight. Like the game's items, an item with a use can be put
+on X, Y or R: in the Delivery Bag, X or Y puts it on that button (R there turns the pages while Link
+has mod items). When the bag's pages are full, a new item is kept and gets a place
+as soon as one is free; the caption says so.
+
+**Saving.** How many of each item Link has, where it sits in the bag and which button it is on are
+kept in the save's story block, never in the game's own item data. A save without your mod is a
+normal save: the bag shows the game's items only, and the buttons keep the game's items. Turning your
+mod on again brings its items back.
+
 ## Quests
 
 The story notebook is the port's journal for story mods. It comes with the Story Notebook package's
@@ -138,7 +233,8 @@ letter and is kept in the Delivery Bag. Opening it shows one row per quest: the 
 name, the next step, where, and the status (**New**, **In progress**, **Not yet available**, or
 **Done** in the Archive tab). Choosing a quest shows what is known so far and the reward, and
 **Show on chart** puts the game's story ring on the next step's place on the sea chart (one quest at
-a time).
+a time). A quest that hasn't started yet can be shown too: its page says "Not started yet" with step
+1's place, and the ring goes there.
 
 The preferred way to describe a quest is data in the manifest (next section). From code:
 
@@ -216,8 +312,8 @@ is in the notebook at once. Your code then only reports progress the port can't 
 | `id`, `title` | the quest's ID and title (rules above) |
 | `journal` | `on_enable` (in the notebook as soon as the mod is on, the default), `on_trigger`, or `hidden` (not in the notebook) |
 | `start.text` | what the notebook shows before step 1 |
-| `letter` | the quest's letter: the port sends it; when it is read the quest reaches step 1. `encloses` may hold `"letter:<id>"` (a sealed letter Link carries for the quest, shown in the Delivery Bag) and `"chart:<id>"`. Only the Story Notebook package may enclose `"notebook"` |
-| `reward` | `text` for the notebook; `item` a rupee (`rupee_green` ... `rupee_orange`) given when the quest is done; or `chart` |
+| `letter` | the quest's letter: the port sends it; when it is read the quest reaches step 1. `encloses` may hold `"letter:<id>"` (a sealed letter Link carries for the quest, shown in the Delivery Bag), `"chart:<id>"` and `"item:<id>"`. Only the Story Notebook package may enclose `"notebook"` |
+| `reward` | `text` for the notebook; `item` given when the quest is done: a rupee (`rupee_green` ... `rupee_orange`) or one of your items (`"item:<id>"`); or `chart` (`"chart:<id>"`) |
 | `steps` | the steps in order, each with `n` (1, 2, ...) and `text`, plus the optional fields below |
 
 A sealed letter enclosure may be written as an object to describe it in your own words:
@@ -253,7 +349,8 @@ The port arbitrates, not your mod:
 - a step that takes over a resident with no condition at all speaks for your quest whenever the step
   is current; the log warns about it, so give such steps a condition;
 - the port never sets or clears a game flag;
-- the lines are one message box: up to three lines, 240 bytes. `then.give` is a rupee item;
+- the lines are one message box: up to three lines, 240 bytes. `then.give` is a rupee item, one of
+  your charts (`"chart:<id>"`) or one of your items (`"item:<id>"`);
   `then.take` takes the sealed letter; `then.complete` finishes the quest;
 - `"who"` names a resident by its neutral id from the [NPC catalogue](#the-npc-catalogue).
 
@@ -357,19 +454,5 @@ mods off the save is a plain game save. The block holds up to 255 records per Qu
 
 Turning your mod off leaves its records in the save; the notebook and the sea chart simply don't
 show them.
-
-## Coming in a later port version
-
-These are not available yet. Don't use them in a mod you submit now:
-
-- **Mod items:** an `items` block for the mod's own items in the Delivery Bag, given by letters,
-  talks, rewards or code (`wwhd_item_*`), with Info and Use;
-- **items on X, Y and R;**
-- **the Delivery Bag's extra pages** for mod items;
-- **treasure chests for mod charts:** a chart's `item` (what its treasure holds), salvaged like the
-  game's treasures;
-- **letters in the manifest:** a top-level `letters` block (up to 8 letters, each `{"id", "sender",
-  "text", "encloses"}`) that the port sends while the mod is on, with no code. Until then, send such
-  letters from code.
 
 Next: [Art, layouts and licences](art.md).

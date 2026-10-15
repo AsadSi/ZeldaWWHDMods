@@ -72,11 +72,13 @@ A minimal guest manifest:
 
 ### Story fields
 
-These need the story system (port 0.2.15). They are explained with examples in [Story mods](story.md).
+These need the story system (port 0.3.0). They are explained with examples in [Story mods](story.md).
 
 | Field | Meaning |
 | --- | --- |
-| `charts` | up to 8 charts: `{"id", "name", "description", "place": {"x", "z"}}` |
+| `charts` | up to 8 treasure charts: `{"id", "name", "description", "place": {"x", "z"}, "item"}`; `item` is what the treasure chest holds |
+| `letters` | up to 8 letters with no quest: `{"id", "sender", "text", "encloses"}`; the port sends them, and reading one gives the charts and items it encloses |
+| `items` | up to 32 items of your own for the Delivery Bag: `{"id", "name", "description", "icon", "stack", "use"}` |
 | `quests_format` | `1`, required with `quests` |
 | `quests` | up to 8 quests for the story notebook: `id`, `title`, `journal`, `start`, `letter`, `reward`, `steps` |
 | `npc_catalogue` | the NPC catalogue version your quests need (currently `3`) |
@@ -84,10 +86,6 @@ These need the story system (port 0.2.15). They are explained with examples in [
 
 A manifest with `quests` or `charts` depends on the Story Notebook package even if it doesn't say
 so; declare the dependency anyway, so the catalogue lists it.
-
-Coming in a later port version: a top-level `letters` block (letters sent with no code), an `items`
-block for the mod's own Delivery Bag items, and a chart's `item` (what its treasure chest holds).
-Don't use them yet.
 
 ## The catalogue entry
 
@@ -106,7 +104,7 @@ packager builds exactly the IDs listed there. Copy an existing entry and set:
   "builds": ["USA", "EU"],
   "requires": [],
   "setup": [{"id": "build", "type": "build_guest_mod", "title": "Build My mod for this installation"}],
-  "port_versions": {"minimum": "0.2.15"}
+  "port_versions": {"minimum": "0.3.0"}
 }
 ```
 

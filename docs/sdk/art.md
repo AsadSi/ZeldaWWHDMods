@@ -34,6 +34,7 @@ A small text file that belongs to the pictures (the Story Notebook's page layout
 | --- | --- | --- |
 | HUD images (`wwhd_hud_texture`) | PNG | at most 2048 × 2048 each; 32 images and 16 MiB of decoded pixels per mod |
 | Quest portrait (`wwhd_quest_portrait`) | PNG in `assets/` | up to 256 × 256 |
+| Item icon (`items[].icon`, port 0.3.0) | PNG in `assets/` | any size, scaled to 128 × 128; 128 × 128 with transparency works best. The port adds it to the game's item pictures on the player's machine |
 | Story Notebook icon (`notebook.icon`, `notebook.icon_open`) | PNG | up to 1024 × 1024 and 4 MiB; 192 × 192 with transparency works well |
 | Story Notebook model (`notebook.model`) | binary glTF 2.0 (`.glb`) | up to 8 MiB |
 | Story Notebook page (`notebook.layout`) | layout description (JSON) and PNGs in its folder | JSON up to 1 MiB; up to 64 PNGs and 64 MiB of decoded pixels in that folder |
