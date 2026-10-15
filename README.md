@@ -1,6 +1,24 @@
 # Wind Waker HD guest mods
 
-**Writing a mod?** The [Mod SDK guide](docs/sdk/README.md) has everything you need: setup and the toolchain, the package layout, manifest fields (quests, charts, the notebook), the C API, art and licence rules, testing and submitting, and worked examples. [Creating a mod](docs/creating-a-mod.md) describes this repository's build and submission workflow.
+## Story quests (port 0.3.0)
+
+With port 0.3.0, mods can tell new stories in the game's own way: letters by Rito mail, treasure
+charts and quests that show up in a notebook of their own.
+
+- **The Story Notebook:** a storyteller's letter brings Link a notebook that lists every mod quest:
+  what to do next, where, and how far you got. **Show on chart** marks a quest on the sea chart. It
+  comes with a first small quest on Windfall Island and installs with the port's setup.
+- **Call of the Sky:** an optional song quest on Dragon Roost Island, ending with a ride across the
+  Great Sea (experimental).
+- **The Old map:** a sailor's letter brings a treasure chart. Open it in the MAP screen, follow the
+  ring of light, salvage the chest and find the red circle on your sea chart (experimental).
+
+Modders: the [Mod SDK guide](docs/sdk/README.md) explains letters, charts, items and quests, with
+these packages as [worked examples](docs/sdk/examples.md).
+
+## Mods
+
+**Writing a mod?** The [Mod SDK guide](docs/sdk/README.md) has everything you need: setup and the toolchain, the package layout, manifest fields (letters, charts, items, quests, the notebook), the C API, art and licence rules, testing and submitting, and worked examples. [Creating a mod](docs/creating-a-mod.md) describes this repository's build and submission workflow.
 
 SDK v2 guest mods for [ZeldaWWHDRecomp](https://github.com/ZeldaWWHDRecomp/ZeldaWWHDRecomp). Install through **Mods → Browse**, complete the package's setup steps, enable code mods when offered, then enable and restart. Guest panels use the port's HUD API on Metal and Vulkan.
 
@@ -9,8 +27,8 @@ SDK v2 guest mods for [ZeldaWWHDRecomp](https://github.com/ZeldaWWHDRecomp/Zelda
 | [Heart ticker](heart-ticker/) | Existing guest example | Hearts tick down to half a heart and refill. |
 | [GameCube sea minimap](gc-minimap/) | Guest port in progress; verification pending | Position and heading on locally prepared Great Sea island maps. |
 | [Call of the Sky](dragon/) | Experimental guest implementation; gameplay verification pending | Optional Dragon Roost song quest and Valoo ride, with its quest in the story notebook. |
-| [The Story Notebook](story-notebook/) | The story system's required package, installed with the port's setup (port 0.2.15) | The storyteller's letter brings the story notebook, with a first small quest. |
-| [Old map](story-chart/) | Experimental story example | A treasure chart sent in a letter, with no quest. |
+| [The Story Notebook](story-notebook/) | The story system's required package, installed with the port's setup (port 0.3.0) | The storyteller's letter brings the story notebook, with a first small quest. |
+| [Old map](story-chart/) | Experimental story example | A treasure chart sent in a letter, with no quest: salvage its chest like the game's treasures. |
 | [Letter from a storyteller](rito-letter/) | Experimental story example | A letter sent from code by the Rito postbox. |
 
 Experimental mods (`"experimental": true`) are untested and may break the game or a save. The port lists them only with **Show experimental mods** on and backs up the player's saves before one is enabled.
