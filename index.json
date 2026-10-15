@@ -29,11 +29,11 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.15"
+        "minimum": "0.3.0"
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/dragon.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/dragon.zip",
           "size": 56001,
           "sha256": "3a25441bcf2102ebe65276358ac1f1eb0e51f989eaf376a574bf91f1f7946c36"
         }
@@ -91,7 +91,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/gc-minimap.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/gc-minimap.zip",
           "size": 31212,
           "sha256": "5369bcac1767fbc95b8b26e2424d675c2d55d460ea8b17a5be5c1fabaf13cede"
         }
@@ -126,7 +126,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/heart-ticker.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/heart-ticker.zip",
           "size": 8519,
           "sha256": "6f9cedd52d88a8fa625e9a384c2a398dc8c9af55e3bca7e59e15954da0208fcd"
         }
@@ -140,7 +140,7 @@
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.1.0",
+      "version": "0.1.1",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -160,25 +160,25 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.15"
+        "minimum": "0.3.0"
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/rito-letter.zip",
-          "size": 7968,
-          "sha256": "baa7d232f903795f9abb7f3f4bb1799c5d74e55af7251510c0a8e70650a0c1f4"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/rito-letter.zip",
+          "size": 8019,
+          "sha256": "a18ae11f78fd0eb6bf2b070fb0e74f4a25a9531fd41a5edbe3047d7d1a444532"
         }
       }
     },
     {
       "id": "story-chart",
       "name": "Old map",
-      "description": "Example: a treasure chart of a story mod, sent in a letter, with no quest.",
+      "description": "Example: a treasure chart sent in a letter, with no quest: salvage its treasure like the game's own.",
       "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -198,13 +198,13 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.15"
+        "minimum": "0.3.0"
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/story-chart.zip",
-          "size": 8901,
-          "sha256": "52e84a02690bcd76c17e0c6a0ac45624957028d7d300ebde8de922c58601ed4a"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/story-chart.zip",
+          "size": 8585,
+          "sha256": "cdd35e2815d46e7e6c9df58e5fc9f458bcca5882bb069c2a20cfff74ef251056"
         }
       }
     },
@@ -233,11 +233,11 @@
         }
       ],
       "port_versions": {
-        "minimum": "0.2.15"
+        "minimum": "0.3.0"
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-558f021182d9e761286512a2394e6860b9245500/story-notebook.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-c530ee22e2530c429833dbe894ad90e8d62924dc/story-notebook.zip",
           "size": 5425725,
           "sha256": "65d1bd981e8cc7fb5e7f860d6a69a78f173dda13b726f278ceda5c96a8d099c4"
         }
