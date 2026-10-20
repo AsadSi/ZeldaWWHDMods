@@ -1,17 +1,20 @@
-# GameCube sea minimap — SDK v2 example
+# GameCube minimap
 
-This SDK v2 guest mod is an example implementation. The v0.2.2 built-in prototype is preserved in `../legacy/gc-minimap/` for comparison.
+Adds a GameCube-style corner map to the TV during Great Sea exploration and in supported dungeon rooms. Version 0.3.0 adds current-room dungeon maps.
 
-Install through the port's Mods catalogue, enable code mods when offered, select your own GameCube Wind Waker RVZ, ISO or full extracted game folder, run **Prepare local island maps**, build, then enable and restart. Preparation accepts USA, European and Japanese GameCube data; the running HD installation may be USA or European. RVZ is read directly in bounded chunks; no ISO conversion or other programs are used. The decomp’s executable/REL-only extraction is insufficient because it contains no maps.
+Install through **Mods → Browse**, enable code mods when offered, select your own GameCube Wind Waker RVZ, ISO or full extracted game folder, run **Prepare local maps**, build, then enable and restart. Re-run preparation when updating from an earlier version. USA, European and Japanese GameCube sources are accepted; the running HD installation may be USA or European. The selected source must contain the full game’s map files.
 
-Preparation uses Python's standard library. Zstandard-compressed RVZ files require Python 3.14 or newer. The pinned port provisions a verified private setup interpreter with Zstandard support; it leaves system Python unchanged. Existing installations can refresh their setup bridge with `setup --repair-guest-python` (and `--data-dir` for a custom data location). Windows requires the updated release containing its bundled interpreter. Other supported RVZ codecs use the standard-library decoders. It reads your selected source and writes flat files into this mod's data folder. Derived island maps are never part of the distributed package. Package frame, heading marker and arrows are original artwork generated reproducibly by `generate_art.py`.
+Your game files stay on your machine. Preparation writes derived maps only into the mod’s local data storage; no game maps are included in the distributed package. RVZ files are read directly without ISO conversion. Zstandard-compressed RVZ files need the updated port’s private preparation interpreter. An older installation can refresh its preparation tools with the setup repair option.
 
-The panel shows on the TV during Great Sea gameplay, hides during events and transitions, while the game is paused or a menu is open on the TV (for example the pause menu with a Pro Controller), and hides sectors without verified map bounds. Position, size, opacity and vector/original map style are configurable. Arrows are decorative. There are no interior or dungeon maps and no separate boat marker. Map preparation uses verified GameCube map extents; the old HD recoloured fallback is not used. Same-save Metal/30 captures visually agree on island silhouette, registration, marker and panel placement. Rasterization differs slightly (including a one-pixel border edge); captures are not pixel-identical. USA/EU checks cover Metal and Vulkan at 30 fps, interpolated 60 fps and true 60 fps. The rotated marker uses the pinned port’s bounded HUD clipping service to stay inside the chart without changing its projected position or size. Older hosts refuse this service import; boundary captures on the updated host verified clipping on all four edges.
+Dungeon maps follow the GameCube **current-room corner map**: entering a room or changing floors selects that room’s image, with Link’s position and facing. Owning the dungeon map does not reveal neighboring room silhouettes in this panel; that is the pause-screen map’s behavior. The compass enables unopened-chest markers. Doors are marked separately. The panel hides during events, transitions, pauses and TV menus.
 
-This implementation requires the HUD-capable SDK v2 port and the curated declarations pinned in `../sdk.json`; the numeric minimum identifies the base release and does not imply those declarations ship in an older binary. The port handles USA-to-European address translation during guest preparation. Enabling and disabling take effect on restart.
+Coverage depends on the original room files. It includes Dragon Roost Cavern, Forbidden Woods, Tower of the Gods, Earth Temple, Wind Temple, their supported miniboss rooms, and Forsaken Fortress areas. Ganon’s Tower, main boss arenas and ordinary secret caves without complete GameCube corner maps stay hidden. Preparation also rejects missing or invalid map bounds.
 
-Synthetic tests: `python3 -m unittest discover -s gc-minimap/tests`. Asset format fixtures are authored in tests; no game data is included.
+Mod dungeons that supply a map can show their current room using the port’s existing room artwork, including compass markers. This requires the updated port; older hosts omit mod-dungeon maps while retaining prepared GameCube room maps. Mod-room artwork is the same in both style settings.
+
+Left and bottom margins, panel size, opacity and original/vector map style remain configurable. **Show dungeon maps** turns room maps off while keeping sea maps enabled. There is no separate boat marker. Enabling, disabling and option changes take effect after restarting.
 
 ## Changes
 
-- **0.2.1:** the panel no longer stays on top of the pause menu and other menus shown on the TV.
+- **0.3.0:** adds current-room dungeon maps, floor selection, live compass markers, optional mod-dungeon maps and a dungeon-map toggle.
+- **0.2.1:** hides the panel while a pause menu or another menu is shown on the TV.

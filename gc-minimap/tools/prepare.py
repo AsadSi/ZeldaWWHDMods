@@ -5,6 +5,7 @@ import formats
 import vector
 import rvz
 import safe_io
+import dungeons
 
 
 def room_archive(context,files,room):
@@ -24,6 +25,7 @@ def prepare(context):
     # Clear readiness/bounds before reading the new input, including malformed ISO.
     # Existing textures cannot revive a sector whose bounds were not reverified.
     context.write_data('maps-ready.json',b'{"ready":false}\n')
+    context.write_data('dungeons-ready.bin', b'')
     for room in range(1,50): context.write_data(f'room-{room:02}.bounds',bytes(16))
     disc=rvz.disc_reader(context) if context.is_disc() else context
     files=formats.iso_files(disc) if context.is_disc() else None
@@ -45,7 +47,8 @@ def prepare(context):
         context.write_data(f'room-{room:02}.bounds',struct.pack('>4f',*bounds))
         prepared.append(room)
     if not prepared: raise ValueError('No sectors with verified map bounds; selected dump is not ready')
-    result={'format_version':1,'ready':True,'rooms':prepared,'hidden_without_verified_bounds':hidden,'derived_assets_local_only':True}
+    dungeon_rooms=dungeons.prepare(context,files,disc)
+    result={'dungeon_rooms':dungeon_rooms,'format_version':1,'ready':True,'rooms':prepared,'hidden_without_verified_bounds':hidden,'derived_assets_local_only':True}
     context.write_data('maps-ready.json',json.dumps(result,sort_keys=True,indent=2).encode()+b'\n')
     return result
 
