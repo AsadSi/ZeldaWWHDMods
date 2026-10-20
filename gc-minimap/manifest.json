@@ -63,7 +63,7 @@
       "default": true
     }
   ],
-  "author": "Lukas S <lukasschaupp@gmail.com>",
+  "author": "ZeldaWWHDRecomp contributors",
   "description": "GameCube-style sea and current-room dungeon maps, prepared locally from your own game files.",
   "minimum_manager_version": "1.5.0",
   "setup": [

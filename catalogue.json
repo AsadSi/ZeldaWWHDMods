@@ -34,7 +34,7 @@
       "name": "GameCube minimap",
       "description": "GameCube-style sea and current-room dungeon maps, prepared locally from your own game files.",
       "authors": [
-        "Lukas S <lukasschaupp@gmail.com>"
+        "ZeldaWWHDRecomp contributors"
       ],
       "version": "0.3.0",
       "kind": "guest",
