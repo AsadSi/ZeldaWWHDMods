@@ -12,10 +12,10 @@ its own implementation for the port; it does not use the pack's patches.
 
 | Where | Minimap |
 | --- | --- |
-| Great Sea, discovered sector, near its island | The sector's island map, with Link (or the boat) and the wind direction |
+| Great Sea, discovered sector, near its island | The sector's island map on the see-through (lightly darkened) panel, with Link (or the boat) and the wind direction |
 | Undiscovered sector | No map; a faded map with a question mark |
 | Out at sea, away from the island | Nothing; the game's own compasses |
-| Sailing, with an owned treasure chart | Optionally the chart beside the minimap (Triforce charts once deciphered) |
+| Sailing, with an owned treasure chart | Optionally the chart beside the minimap: the chart art centred on the treasure's X, as the game's chart screen shows it, with its number (Triforce charts once deciphered) |
 | Dungeon with the Map | The plan of Link's current floor with its doors; Link's room bright, unvisited rooms dimmed |
 | Dungeon with the Compass | Unopened chests on this floor and the boss icon at the boss door (until the boss is beaten) |
 | Earth / Wind Temple | Medli or Makar when they are on Link's floor |
@@ -37,7 +37,7 @@ options:
 ## Settings
 
 Position and both sizes, overall opacity, faded opacity, fade on movement (Link and camera input), black
-background and its opacity, wind arrow, dungeon maps, and the four buttons. Changes apply after a
+background and its opacity, parchment behind island maps (off: the map is see-through), wind arrow, dungeon maps, and the four buttons. Changes apply after a
 restart, like every code mod option.
 
 ## Requirements and data

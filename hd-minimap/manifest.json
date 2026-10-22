@@ -96,6 +96,12 @@
       "step": 0.05
     },
     {
+      "id": "parchment",
+      "name": "Parchment behind island maps",
+      "type": "bool",
+      "default": false
+    },
+    {
       "id": "wind",
       "name": "Wind direction arrow",
       "type": "bool",

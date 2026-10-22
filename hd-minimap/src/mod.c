@@ -48,7 +48,7 @@ enum { MODE_NONE, MODE_SEA, MODE_DUNGEON };
 
 static struct {
     float x, side_compact, side_expanded, bottom, opacity, faded, bg_opacity;
-    int fade, background, wind, dungeons, debug, zoom_turns;
+    int fade, background, wind, dungeons, debug, zoom_turns, parchment;
     u32 key_toggle, key_size, key_view, key_chart;
 } opt;
 
@@ -58,7 +58,7 @@ static struct {
     s16 yaw, cyaw;
     u32 wind;
     int chart_set, chart_count;
-    struct { s8 sea, save, number; } charts[MAX_CHARTS];
+    struct { s8 sea, save, number; s16 rect[4]; } charts[MAX_CHARTS];
     float origin_x, origin_z, size, map_width;
     unsigned long long visited;
     int door_count, boss_visible;
@@ -82,7 +82,7 @@ static int initialized;
 /* images */
 static unsigned long long image_epoch;
 static u32 img_frame, img_wind, img_unknown, img_face, img_arrow, img_chest, img_medli, img_makar, img_ship, img_base, img_door, img_boss;
-static u32 img_island, img_chart, img_ribbon, img_chart_base;
+static u32 img_island, img_chart, img_ribbon, img_chart_base, img_mark, img_mark_fill;
 static int island_room = -1, island_full = -1, chart_key = -1;
 static struct { int pane, room; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
 /* the floor screens' room tables (DungeonMapFloor_00..05): (plan room, floor, room) per plan room */
@@ -127,6 +127,7 @@ static void configure(void) {
     opt.dungeons = wwhd_config_bool("dungeons", 1);
     opt.debug = wwhd_config_bool("debug", 0);
     opt.zoom_turns = wwhd_config_bool("zoom_turns", 1);
+    opt.parchment = wwhd_config_bool("parchment", 0);
     opt.key_toggle = key_option("key_toggle", "left");
     opt.key_size = key_option("key_size", "right");
     opt.key_view = key_option("key_view", "down");
@@ -145,7 +146,7 @@ static void forget_rooms(void) {
 static void forget_images(void) {
     /* after a state load the handles are gone: just forget them */
     img_frame = img_wind = img_unknown = img_face = img_arrow = img_chest = img_medli = img_makar = img_ship = img_base = img_door = img_boss = 0;
-    img_island = img_chart = img_ribbon = img_chart_base = 0; island_room = island_full = chart_key = -1;
+    img_island = img_chart = img_ribbon = img_chart_base = img_mark = img_mark_fill = 0; island_room = island_full = chart_key = -1;
     for (int i = 0; i < 4; ++i) img_feedback[i] = 0;
     for (int i = 0; i < room_count; ++i) rooms[i].image = 0;
     room_count = 0; rooms_dungeon = rooms_floor = -1;
@@ -297,10 +298,13 @@ static void draw_sea(u32 list, float x, float y, float side, float a) {
     }
     island_image(snap.sector);
     if (!img_island) return;
-    if (!img_base) img_base = game_image("BtnMapBalloon_00/MapArea_00^t#P_MapBase_00");
+    if (opt.parchment && !img_base) img_base = game_image("BtnMapBalloon_00/MapArea_00^t#P_MapBase_00");
     if (opt.background) rect(list, x + inset, y + inset, inner, inner, 0x000000, opt.bg_opacity * a / (opt.opacity > 0 ? opt.opacity : 1));
     clip(list, 1, x + inset, y + inset, inner, inner);
-    image(list, img_base, x + inset - inner * .1f, y + inset - inner * .1f, inner * 1.2f, inner * 1.2f, 0, 0xffffff, a);
+    /* see-through by default: the island art sits on the lightly darkened game picture; the game's
+     * parchment card behind it is an option */
+    if (opt.parchment)
+        image(list, img_base, x + inset - inner * .1f, y + inset - inner * .1f, inner * 1.2f, inner * 1.2f, 0, 0xffffff, a);
     image(list, img_island, x + inset, y + inset, inner, inner, 0, 0xffffff, a);
     float u, v;
     hdm_island_uv(snap.sector, snap.island_dx, snap.island_dz, snap.x, snap.z, &u, &v);
@@ -327,9 +331,21 @@ static void draw_chart(u32 list, float x, float y, float side, float a) {
     float inset = side * 6.0f / 256.0f, inner = side - 2 * inset;
     /* the chart's own blue paper (TreMap_00's base) under the sector's chart art */
     if (!img_chart_base) img_chart_base = game_image("TreMap_00/MapArea_00^t#P_TreMapBase_00");
+    /* as the game's treasure chart screen does it (hdTreMapScreen_c::selectChart): the chart is centred on
+     * the treasure's spot, where the X is, and the sector's chart art is moved by the art centre's
+     * distance from it; the chart spans the game's cell world size */
+    const s16* r = snap.charts[ui.chart].rect;
+    f32 world = WWHD_GAME_DATA(0x1010855C, f32);
+    float k = hdm_finite(world) && world > 1000 && world < 1e6f ? inner / world : 0;
+    float ax = (float)(r[2] - r[0]) * k, ay = (float)(r[3] - r[1]) * k;
     clip(list, 1, x + inset, y + inset, inner, inner);
     image(list, img_chart_base, x + inset - inner * .1f, y + inset - inner * .1f, inner * 1.2f, inner * 1.2f, 0, 0xffffff, a);
-    image(list, img_chart, x + inset, y + inset, inner, inner, 0, 0xffffff, a);
+    image(list, img_chart, x + inset + ax, y + inset + ay, inner, inner, 0, 0xffffff, a);
+    if (!img_mark) img_mark = game_image("TreMap_00/MapTreasureMark_00^t#P_TreasureMark_00");
+    if (!img_mark_fill) img_mark_fill = game_image("TreMap_00/MapTreasureMark_00^t#P_TreasureMarkColor_00");
+    float m = inner * .15f, cx = x + side / 2, cy = y + side / 2;
+    image(list, img_mark, cx - m / 2, cy - m / 2, m, m, 0, 0xffffff, a);
+    image(list, img_mark_fill, cx - m / 3, cy - m / 3, m * 2 / 3, m * 2 / 3, 0, 0xffffff, a);
     clip(list, 0, 0, 0, 0, 0);
     frame(list, x, y, side, a);
     /* the game's title ribbon with the chart's number (language-neutral; the chart names are game text) */
@@ -459,6 +475,7 @@ static void draw(u32 list) {
         wwhd_log_float("sea.island_dx", snap.island_dx); wwhd_log_float("sea.island_dz", snap.island_dz);
         wwhd_log_int("sea.covered", snap.covered); wwhd_log_int("sea.ship", snap.on_ship); wwhd_log_int("sea.charts", snap.chart_count);
         wwhd_log_int("sea.chart_set", snap.chart_set);
+        wwhd_log_float("chart.world", WWHD_GAME_DATA(0x1010855C, f32));
         {
             u8* play = wwhd_play_get();
             fopAc_ac_c* ship = play ? *(fopAc_ac_c**)(play + 0x5B3C) : 0;
@@ -564,7 +581,13 @@ static void read_charts(u32 save) {
         if (!chart_owned(save + SAVE_PLAYER_MAP, save_no - 1)) continue;
         if (type == 0 && !chart_open(save + SAVE_PLAYER_MAP, save_no - 1)) continue;  /* Triforce charts once deciphered */
         snap.charts[snap.chart_count].sea = sea; snap.charts[snap.chart_count].save = save_no;
-        snap.charts[snap.chart_count].number = (s8)e[2]; ++snap.chart_count;
+        snap.charts[snap.chart_count].number = (s8)e[2];
+        /* the chart set's rectangle: the treasure's spot (the chart's centre) and the art's centre, sector-local */
+        for (int k = 0; k < 4; ++k) {
+            const u8* r = e + 6 + 2 * (4 * snap.chart_set + k);
+            snap.charts[snap.chart_count].rect[k] = (s16)(((u16)r[0] << 8) | r[1]);
+        }
+        ++snap.chart_count;
     }
 }
 static void handle_input(void) {
