@@ -52,6 +52,12 @@ restart, like every code mod option.
 - The treasure chart's ribbon shows the chart's number, not its name (the names are game text).
 - Link's position is not drawn on the treasure chart (as in Minimap HD).
 
+## Checked in the game
+
+USA and European game builds; Metal and Vulkan; 30 fps, interpolated 60 fps and true 60 fps. Places checked:
+Outset; sailing aboard the boat with treasure charts; Forsaken Fortress; Dragon Roost Cavern; Forbidden
+Woods; Tower of the Gods; Earth Temple; Wind Temple (with and without the Map and Compass).
+
 ## Tests
 
 `python3 -m unittest discover -s hd-minimap/tests` compiles and runs the host tests of the rules in
