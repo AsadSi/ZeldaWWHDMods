@@ -108,6 +108,12 @@
       "default": true
     },
     {
+      "id": "zoom_turns",
+      "name": "Dungeon zoom turns with Link",
+      "type": "bool",
+      "default": true
+    },
+    {
       "id": "key_toggle",
       "name": "Show / hide",
       "type": "enum",

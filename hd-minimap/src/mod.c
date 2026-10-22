@@ -25,6 +25,7 @@ WWHD_GAME_FUNC(0x0258DBF4, u8, room_floor, (s32 room, f32 y));                  
 WWHD_GAME_FUNC(0x0257DACC, u32, wind_angle, (void));                                   /* dKyw_get_wind_angle */
 WWHD_GAME_FUNC(0x025C11DC, u8*, room_data, (u32 control, s32 room));
 WWHD_GAME_FUNC(0x025C4734, u8*, stage_treasures, (void));
+WWHD_GAME_FUNC(0x025C4740, u8*, stage_doors, (void));
 
 /* play (dComIfGp) and save offsets used here */
 #define PLAY_STAGE 0x5150           /* dStage_stageDt_c: +0x48 stage info, +0x74 DMAP */
@@ -47,7 +48,7 @@ enum { MODE_NONE, MODE_SEA, MODE_DUNGEON };
 
 static struct {
     float x, side_compact, side_expanded, bottom, opacity, faded, bg_opacity;
-    int fade, background, wind, dungeons, debug;
+    int fade, background, wind, dungeons, debug, zoom_turns;
     u32 key_toggle, key_size, key_view, key_chart;
 } opt;
 
@@ -57,9 +58,12 @@ static struct {
     s16 yaw, cyaw;
     u32 wind;
     int chart_set, chart_count;
-    struct { s8 sea, save; } charts[MAX_CHARTS];
+    struct { s8 sea, save, number; } charts[MAX_CHARTS];
     float origin_x, origin_z, size, map_width;
     unsigned long long visited;
+    int door_count, boss_visible;
+    struct { float x, z; s16 heading; } doors[MAX_POINTS];
+    float boss_x, boss_z, boss_dx, boss_dy;
     int dmap;
     int point_count;
     struct { float x, z; } points[MAX_POINTS];
@@ -77,8 +81,8 @@ static int initialized;
 
 /* images */
 static unsigned long long image_epoch;
-static u32 img_frame, img_wind, img_unknown, img_face, img_arrow, img_chest, img_medli, img_makar, img_ship, img_base;
-static u32 img_island, img_chart;
+static u32 img_frame, img_wind, img_unknown, img_face, img_arrow, img_chest, img_medli, img_makar, img_ship, img_base, img_door, img_boss;
+static u32 img_island, img_chart, img_ribbon;
 static int island_room = -1, island_full = -1, chart_key = -1;
 static struct { int pane, room; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
 /* the floor screens' room tables (DungeonMapFloor_00..05): (plan room, floor, room) per plan room */
@@ -122,6 +126,7 @@ static void configure(void) {
     opt.wind = wwhd_config_bool("wind", 1);
     opt.dungeons = wwhd_config_bool("dungeons", 1);
     opt.debug = wwhd_config_bool("debug", 0);
+    opt.zoom_turns = wwhd_config_bool("zoom_turns", 1);
     opt.key_toggle = key_option("key_toggle", "left");
     opt.key_size = key_option("key_size", "right");
     opt.key_view = key_option("key_view", "down");
@@ -139,8 +144,8 @@ static void forget_rooms(void) {
 }
 static void forget_images(void) {
     /* after a state load the handles are gone: just forget them */
-    img_frame = img_wind = img_unknown = img_face = img_arrow = img_chest = img_medli = img_makar = img_ship = img_base = 0;
-    img_island = img_chart = 0; island_room = island_full = chart_key = -1;
+    img_frame = img_wind = img_unknown = img_face = img_arrow = img_chest = img_medli = img_makar = img_ship = img_base = img_door = img_boss = 0;
+    img_island = img_chart = img_ribbon = 0; island_room = island_full = chart_key = -1;
     for (int i = 0; i < 4; ++i) img_feedback[i] = 0;
     for (int i = 0; i < room_count; ++i) rooms[i].image = 0;
     room_count = 0; rooms_dungeon = rooms_floor = -1;
@@ -323,6 +328,34 @@ static void draw_chart(u32 list, float x, float y, float side, float a) {
     if (opt.background) rect(list, x + inset, y + inset, inner, inner, 0x000000, opt.bg_opacity * a / (opt.opacity > 0 ? opt.opacity : 1));
     image(list, img_chart, x + inset, y + inset, inner, inner, 0, 0xffffff, a);
     frame(list, x, y, side, a);
+    /* the game's title ribbon with the chart's number (language-neutral; the chart names are game text) */
+    if (!img_ribbon) img_ribbon = game_image("MenuMap_00/TitleBase_00^t#P_TitleTreBase_00");
+    /* the ribbon is drawn from two halves, the right one turned (the game mirrors it) */
+    float rw = side * .62f, rh = side * .16f, rx = x + (side - rw) / 2, ry = y - rh * .45f;
+    image(list, img_ribbon, rx, ry, rw / 2, rh, 0, 0xffffff, a);
+    image(list, img_ribbon, rx + rw / 2, ry, rw / 2, rh, pi, 0xffffff, a);
+    static char number[4];
+    int n = snap.charts[ui.chart].number;
+    number[0] = (char)('0' + n / 10 % 10); number[1] = (char)('0' + n % 10); number[2] = 0;
+    if (n < 10) { number[0] = number[1]; number[1] = 0; }
+    element = (wwhd_hud_element){0};
+    element.kind = WWHD_HUD_TEXT; element.anchor = WWHD_HUD_TOP_LEFT;
+    element.x = rx + rw / 2 - rh * (n < 10 ? .18f : .34f); element.y = ry + rh * .12f; element.size = rh * .7f;
+    element.thickness = 1; element.u1 = element.v1 = 1;
+    element.rgba = 0xffffff00u | (u32)(a * 255.0f);
+    element.text = number; element.text_bytes = n < 10 ? 1 : 2;
+    wwhd_hud_emit(list, &element);
+}
+/* layout point -> panel point; zoomed, the plan turns about Link so that he faces up, as the GamePad's
+ * zoomed map does (hdDungeonMap_c::updateMapRotation follows Link's heading) */
+static hdm_view dview;
+static float dinner, dturn, dlink_px, dlink_py;
+static void place(float lx, float ly, float* px, float* py) {
+    hdm_to_panel(&dview, dinner, lx, ly, px, py);
+    if (dturn == 0) return;
+    float c = sin_approx(dturn + pi / 2), s = sin_approx(dturn), dx = *px - dlink_px, dy = *py - dlink_py;
+    *px = dlink_px + dx * c - dy * s;
+    *py = dlink_py + dx * s + dy * c;
 }
 static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     floor_rooms(snap.dungeon, snap.floor);
@@ -331,33 +364,55 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     float link_x, link_y;
     world_to_layout(snap.x, snap.z, &link_x, &link_y);
     int here = room_at(link_x, link_y);
-    hdm_view view;
     if (ui.zoom) {
         float span = (floor_max_x - floor_min_x > floor_max_y - floor_min_y ? floor_max_x - floor_min_x : floor_max_y - floor_min_y) * .45f;
-        view = hdm_fit(link_x - span / 2, link_y - span / 2, link_x + span / 2, link_y + span / 2, inner, 0);
+        dview = hdm_fit(link_x - span / 2, link_y - span / 2, link_x + span / 2, link_y + span / 2, inner, 0);
     } else {
-        view = hdm_fit(floor_min_x, floor_min_y, floor_max_x, floor_max_y, inner, .04f);
+        dview = hdm_fit(floor_min_x, floor_min_y, floor_max_x, floor_max_y, inner, .04f);
     }
-    if (opt.background) rect(list, x + inset, y + inset, inner, inner, 0x000000, opt.bg_opacity * a / (opt.opacity > 0 ? opt.opacity : 1));
-    clip(list, 1, x + inset, y + inset, inner, inner);
+    dinner = inner; dturn = 0;
+    hdm_to_panel(&dview, inner, link_x, link_y, &dlink_px, &dlink_py);
+    if (ui.zoom && opt.zoom_turns) dturn = -yaw_rotation(snap.yaw);
+    float ox = x + inset, oy = y + inset;
+    if (opt.background) rect(list, ox, oy, inner, inner, 0x000000, opt.bg_opacity * a / (opt.opacity > 0 ? opt.opacity : 1));
+    clip(list, 1, ox, oy, inner, inner);
     for (int i = 0; i < room_count; ++i) {
         int p = rooms[i].pane;
         int room = rooms[i].room;
         int current = room >= 0 ? room == snap.room : p == here;
         int visited = room >= 0 && room < 64 && ((snap.visited >> room) & 1);
         u32 rgb = current ? 0xffffff : visited ? 0xc8c8c8 : 0x707070;
-        float px, py;
-        hdm_to_panel(&view, inner, rooms[i].x - rooms[i].w / 2, rooms[i].y + rooms[i].h / 2, &px, &py);
-        image(list, rooms[i].image, x + inset + px, y + inset + py, rooms[i].w * view.scale, rooms[i].h * view.scale, 0, rgb,
-              current || visited ? a : a * .7f);
+        float px, py, w = rooms[i].w * dview.scale, h = rooms[i].h * dview.scale;
+        place(rooms[i].x, rooms[i].y, &px, &py);
+        image(list, rooms[i].image, ox + px - w / 2, oy + py - h / 2, w, h, dturn, rgb, current || visited ? a : a * .7f);
+    }
+    /* marker sizes follow the GamePad's: a chest 24 x 18, a door 32 x 10, the boss icon 35 x 29 (layout units
+     * of a 520-unit plan), scaled to the panel */
+    float unit = side / 330.0f;
+    if (!img_door) img_door = game_image("DungeonMapDoor_00/MapDoor_00^t#P_Door_00");
+    for (int i = 0; i < snap.door_count; ++i) {
+        float lx, ly, px, py;
+        world_to_layout(snap.doors[i].x, snap.doors[i].z, &lx, &ly);
+        place(lx, ly, &px, &py);
+        image(list, img_door, ox + px - 16 * unit, oy + py - 5 * unit, 32 * unit, 10 * unit,
+              dturn + (float)snap.doors[i].heading * (2 * pi / 65536.0f), 0xffffff, a);
     }
     if (snap.has_compass) {
-        if (!img_chest) img_chest = game_image("DungeonMapTreasure_00/MapTreasure_00^t");
+        if (!img_chest) img_chest = game_image("DungeonMapTreasure_00/MapTreasure_00^t#P_Treasure_00");
         for (int i = 0; i < snap.point_count; ++i) {
             float lx, ly, px, py;
             world_to_layout(snap.points[i].x, snap.points[i].z, &lx, &ly);
-            hdm_to_panel(&view, inner, lx, ly, &px, &py);
-            image(list, img_chest, x + inset + px - side * .035f, y + inset + py - side * .03f, side * .07f, side * .06f, 0, 0xffd860, a);
+            place(lx, ly, &px, &py);
+            image(list, img_chest, ox + px - 12 * unit, oy + py - 9 * unit, 24 * unit, 18 * unit, 0, 0xffffff, a);
+        }
+        if (snap.boss_visible) {
+            if (!img_boss) img_boss = game_image("DungeonMapBoss_00/MapBossIcon_00^q");
+            float lx, ly, px, py;
+            world_to_layout(snap.boss_x, snap.boss_z, &lx, &ly);
+            place(lx, ly, &px, &py);
+            /* beside the boss door by the game's per-dungeon offset (l_bossPositions, +y up) */
+            px += snap.boss_dx * unit; py -= snap.boss_dy * unit;
+            image(list, img_boss, ox + px - 17.5f * unit, oy + py - 14.7f * unit, 35 * unit, 29.4f * unit, 0, 0xffffff, a);
         }
     }
     if (snap.companion) {
@@ -365,13 +420,13 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
         if (!*img) *img = game_image(snap.dungeon == 4 ? "DungeonMapMedley_00/MapMedleyS_00^q" : "DungeonMapMakore_00/MapMakoreS_00^q");
         float lx, ly, px, py;
         world_to_layout(snap.cx, snap.cz, &lx, &ly);
-        hdm_to_panel(&view, inner, lx, ly, &px, &py);
-        marker(list, *img, x + inset + px, y + inset + py, side * .1f, 0, a);
+        place(lx, ly, &px, &py);
+        marker(list, *img, ox + px, oy + py, side * .1f, 0, a);
     }
     {
-        float px, py;
-        hdm_to_panel(&view, inner, link_x, link_y, &px, &py);
-        link_marker(list, x + inset + px, y + inset + py, side, a);
+        s16 yaw = snap.yaw;
+        if (dturn != 0) yaw = (s16)0x8000;  /* turned with Link: he always faces up */
+        heading_marker(list, img_face, 0, ox + dlink_px, oy + dlink_py, side, yaw, a);
     }
     clip(list, 0, 0, 0, 0, 0);
     frame(list, x, y, side, a);
@@ -438,6 +493,36 @@ static void capture_chests(u32 membit, const u8* records, s32 count, int filter_
         snap.points[snap.point_count].x = x; snap.points[snap.point_count].z = z; ++snap.point_count;
     }
 }
+/* the stage's doors on Link's floor (all shown: the plan needs the Map), and the boss door, which carries
+ * the boss icon with the Compass until the boss is defeated (hdDungeonMap_c::initDoorsFromStage, isPlayerDoor) */
+static int name_is(const u8* name, const char* want) {
+    for (int i = 0; i < 8; ++i) { if (name[i] != (u8)want[i]) return 0; if (!want[i]) return 1; }
+    return 1;
+}
+static void capture_doors(u32 membit) {
+    snap.door_count = 0; snap.boss_visible = 0;
+    u8* list = stage_doors();
+    if (!list) return;
+    s32 count = *(s32*)list;
+    if (count < 0 || count > 128) return;
+    for (s32 i = 0; i < count; ++i) {
+        const u8* r = list + 4 + 36 * i;
+        float x = *(const f32*)(r + 12), y = *(const f32*)(r + 16), z = *(const f32*)(r + 20);
+        s16 heading = *(const s16*)(r + 26);
+        u32 kind = (*(const u16*)(r + 28) >> 8) & 0xFF;
+        int boss = name_is(r, "door20") || (name_is(r, "door12") && (kind == 9 || kind == 12));
+        if (stage_floor(0, y) != snap.floor) continue;
+        if (boss && snap.has_compass && !dungeon_item(membit, 3)) {
+            const f32* offsets = (const f32*)&WWHD_GAME_DATA(0x104926EC, u8);
+            snap.boss_visible = 1; snap.boss_x = x; snap.boss_z = z;
+            snap.boss_dx = offsets[2 * snap.dungeon]; snap.boss_dy = offsets[2 * snap.dungeon + 1];
+        }
+        if (snap.door_count < MAX_POINTS) {
+            snap.doors[snap.door_count].x = x; snap.doors[snap.door_count].z = z; snap.doors[snap.door_count].heading = heading;
+            ++snap.door_count;
+        }
+    }
+}
 static void read_stage(u8* play) {
     u8* stage = play + PLAY_STAGE;
     u32 dmap = *(u32*)(stage + 0x74);
@@ -470,7 +555,8 @@ static void read_charts(u32 save) {
         if (sea < 1 || sea > 49 || save_no < 1) continue;          /* sector charts only: no overview charts */
         if (!chart_owned(save + SAVE_PLAYER_MAP, save_no - 1)) continue;
         if (type == 0 && !chart_open(save + SAVE_PLAYER_MAP, save_no - 1)) continue;  /* Triforce charts once deciphered */
-        snap.charts[snap.chart_count].sea = sea; snap.charts[snap.chart_count].save = save_no; ++snap.chart_count;
+        snap.charts[snap.chart_count].sea = sea; snap.charts[snap.chart_count].save = save_no;
+        snap.charts[snap.chart_count].number = (s8)e[2]; ++snap.chart_count;
     }
 }
 static void handle_input(void) {
@@ -571,6 +657,7 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
             if (room >= 0 && room < 64 && room_visited(membit, room)) snap.visited |= 1ull << room;
         }
     }
+    capture_doors(membit);
     snap.point_count = 0;
     if (snap.has_compass) {
         u8* table = stage_treasures();
@@ -599,6 +686,10 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
             const unsigned int* table = plan_table(snap.dungeon, &count);
             for (int i = 0; table && i < count; ++i) { wwhd_log_int("plan.marker", (int)table[3*i]); wwhd_log_hex("plan.floor", table[3*i+1]); wwhd_log_int("plan.room", (int)table[3*i+2]); }
             wwhd_log_hex("visited", (u32)snap.visited);
+            const f32* boss = (const f32*)&WWHD_GAME_DATA(0x104926EC, u8);
+            for (int i = 0; i < 6; ++i) { wwhd_log_float("boss.x", boss[2*i]); wwhd_log_float("boss.y", boss[2*i+1]); }
+            u8* doors = stage_doors();
+            if (doors) { wwhd_log_int("doors", *(s32*)doors); }
         }
         wwhd_log_float("x", snap.x); wwhd_log_float("z", snap.z);
         wwhd_log_float("dmap.x", snap.origin_x); wwhd_log_float("dmap.z", snap.origin_z); wwhd_log_float("dmap.size", snap.size);

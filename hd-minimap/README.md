@@ -16,8 +16,8 @@ its own implementation for the port; it does not use the pack's patches.
 | Undiscovered sector | No map; a faded map with a question mark |
 | Out at sea, away from the island | Nothing; the game's own compasses |
 | Sailing, with an owned treasure chart | Optionally the chart beside the minimap (Triforce charts once deciphered) |
-| Dungeon with the Map | The plan of Link's current floor, with Link's room highlighted |
-| Dungeon with the Compass | Unopened chests on this floor too |
+| Dungeon with the Map | The plan of Link's current floor with its doors; Link's room bright, unvisited rooms dimmed |
+| Dungeon with the Compass | Unopened chests on this floor and the boss icon at the boss door (until the boss is beaten) |
 | Earth / Wind Temple | Medli or Makar when they are on Link's floor |
 | Dungeon without the Map, other places | No minimap |
 | Pause menu, menus, first person, aiming, conducting, cutscenes, loading | Hidden |
@@ -31,7 +31,7 @@ options:
 | --- | --- |
 | D-pad left | Show or hide the minimap |
 | D-pad right | Compact or expanded (on foot) |
-| D-pad down | In a dungeon: zoom on Link. Sailing: compasses only → minimap → minimap and chart |
+| D-pad down | In a dungeon: zoom on Link, turned with Link like the GamePad's zoomed map (option). Sailing: compasses only → minimap → minimap and chart |
 | L stick click | Sailing chart view: next owned chart |
 
 ## Settings
@@ -49,9 +49,8 @@ restart, like every code mod option.
 
 ## Known limits (0.1.0)
 
-- No boss icon and no door markers yet. Rooms are not yet told apart by visited or not (the game's room-to-plan
-  table is not read yet). The dungeon zoom does not turn with the camera.
-- The treasure chart is shown without its title ribbon and without Link's position.
+- The treasure chart's ribbon shows the chart's number, not its name (the names are game text).
+- Link's position is not drawn on the treasure chart (as in Minimap HD).
 
 ## Tests
 
