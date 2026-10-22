@@ -49,7 +49,7 @@ restart, like every code mod option.
 - The map pictures are not in this package. The port reads them from your installed game while it
   runs, in your game's language. The mod only names the game's layouts, textures and panes.
 
-## Known limits (0.1.0)
+## Known limits (0.1.1)
 
 - The treasure chart's ribbon shows the chart's number, not its name (the names are game text).
 - Link's position is not drawn on the treasure chart (as in Minimap HD).
@@ -68,4 +68,5 @@ buttons, sailing views and plan fitting. No game data is included.
 
 ## Changes
 
+- **0.1.1:** no longer experimental.
 - **0.1.0:** first version.
