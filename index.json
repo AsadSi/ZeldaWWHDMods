@@ -33,7 +33,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/dragon.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/dragon.zip",
           "size": 54766,
           "sha256": "bb09e5ffc98b1661495cab058cd90232f1b53dbeb350c77c4b8e95f2216446ac"
         }
@@ -92,7 +92,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/gc-minimap.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/gc-minimap.zip",
           "size": 40747,
           "sha256": "2e22666579fd723f24f9505bd5772e39adb4715197c76d54372d1d614ee8c4d8"
         }
@@ -102,11 +102,10 @@
       "id": "hd-minimap",
       "name": "HD minimap",
       "description": "A corner minimap on the TV with the HD game's own GamePad maps: islands, dungeon floors, treasure charts. Based on Minimap HD by Chironeyes (MIT).",
-      "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.1.0",
+      "version": "0.1.1",
       "kind": "guest",
       "licences": [
         "MPL-2.0",
@@ -129,9 +128,9 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/hd-minimap.zip",
-          "size": 111216,
-          "sha256": "a727a35932dc928899cae6ad9074d58f9c4af227286c461c6e2c84fe74dd7c25"
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/hd-minimap.zip",
+          "size": 111221,
+          "sha256": "92429dae772997ee84bf89c07e810fb8f744a55e82455eff7a619855ca7520cf"
         }
       }
     },
@@ -164,7 +163,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/heart-ticker.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/heart-ticker.zip",
           "size": 8503,
           "sha256": "704d003dd0a8dd2893890f78c4500a077067fda2604f213b33b38a99d72227d7"
         }
@@ -202,7 +201,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/rito-letter.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/rito-letter.zip",
           "size": 8045,
           "sha256": "d26415a3f447865fb5be0866d325d9fbd60b683c7174a030eaeaf6b8ce680d17"
         }
@@ -240,7 +239,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/story-chart.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/story-chart.zip",
           "size": 8582,
           "sha256": "99364951e1e652e468162898e63a382bc8e16d38d8d15a39beb1060f43196f22"
         }
@@ -275,7 +274,7 @@
       },
       "downloads": {
         "all": {
-          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-d62b8a70dedfc01204a38c4b83898e2040ed65a6/story-notebook.zip",
+          "url": "https://github.com/ZeldaWWHDRecomp/ZeldaWWHDMods/releases/download/main-e44dbc9aa0cf7a0b875299d6216776d8e2a7161b/story-notebook.zip",
           "size": 5425719,
           "sha256": "f570840df62a1982c9782def3d7e57fa0e207cdb0393482cf988f5fddaaf4b93"
         }
