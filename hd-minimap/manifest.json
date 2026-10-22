@@ -102,6 +102,12 @@
       "default": false
     },
     {
+      "id": "smooth",
+      "name": "Smooth island maps",
+      "type": "bool",
+      "default": true
+    },
+    {
       "id": "wind",
       "name": "Wind direction arrow",
       "type": "bool",

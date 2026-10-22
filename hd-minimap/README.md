@@ -37,7 +37,9 @@ options:
 ## Settings
 
 Position and both sizes, overall opacity, faded opacity, fade on movement (Link and camera input), black
-background and its opacity, parchment behind island maps (off: the map is see-through), wind arrow, dungeon maps, and the four buttons. Changes apply after a
+background and its opacity, parchment behind island maps (off: the map is see-through), smooth island maps (on: the port enlarges
+the game's 100 × 100 island art three times with Lanczos-3 and sharpening on your machine; off or on
+an older port: the original art), wind arrow, dungeon maps, and the four buttons. Changes apply after a
 restart, like every code mod option.
 
 ## Requirements and data

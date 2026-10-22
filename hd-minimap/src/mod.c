@@ -48,7 +48,7 @@ enum { MODE_NONE, MODE_SEA, MODE_DUNGEON };
 
 static struct {
     float x, side_compact, side_expanded, bottom, opacity, faded, bg_opacity;
-    int fade, background, wind, dungeons, debug, zoom_turns, parchment;
+    int fade, background, wind, dungeons, debug, zoom_turns, parchment, smooth;
     u32 key_toggle, key_size, key_view, key_chart;
 } opt;
 
@@ -128,6 +128,7 @@ static void configure(void) {
     opt.debug = wwhd_config_bool("debug", 0);
     opt.zoom_turns = wwhd_config_bool("zoom_turns", 1);
     opt.parchment = wwhd_config_bool("parchment", 0);
+    opt.smooth = wwhd_config_bool("smooth", 1);
     opt.key_toggle = key_option("key_toggle", "left");
     opt.key_size = key_option("key_size", "right");
     opt.key_view = key_option("key_view", "down");
@@ -171,7 +172,18 @@ static void island_image(int room) {
     hdm_sector_texture(name, room, 1);
     island_full = texture_exists(name);
     if (!island_full) hdm_sector_texture(name, room, 0);
-    if (island_full || texture_exists(name)) img_island = game_image(name);
+    if (island_full || texture_exists(name)) {
+        /* "Smooth island maps": the port enlarges the 100 x 100 art 3 times (Lanczos-3) on the player's
+         * machine; the original art when the port can't */
+        if (opt.smooth) {
+            int i = 0;
+            while (name[i]) ++i;
+            name[i] = '@'; name[i + 1] = '3'; name[i + 2] = 0;
+            img_island = game_image(name);
+            name[i] = 0;
+        }
+        if (!img_island) img_island = game_image(name);
+    }
 }
 static void chart_image(int sea) {
     int key = sea * 4 + snap.chart_set;
