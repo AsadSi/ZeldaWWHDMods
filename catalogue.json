@@ -207,11 +207,10 @@
       "id": "hd-minimap",
       "name": "HD minimap",
       "description": "A corner minimap on the TV with the HD game's own GamePad maps: islands, dungeon floors, treasure charts. Based on Minimap HD by Chironeyes (MIT).",
-      "experimental": true,
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.1.0",
+      "version": "0.1.1",
       "kind": "guest",
       "licences": [
         "MPL-2.0",
