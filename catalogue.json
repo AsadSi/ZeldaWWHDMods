@@ -69,7 +69,7 @@
             "maps-ready.json",
             "dungeons-ready.bin"
           ],
-          "explanation": "Reads your own game files and writes derived map images only to this mod\u2019s data folder."
+          "explanation": "Reads your own game files and writes derived map images only to this mod’s data folder."
         },
         {
           "id": "build",
@@ -201,6 +201,36 @@
       ],
       "port_versions": {
         "minimum": "0.3.0"
+      }
+    },
+    {
+      "id": "hd-minimap",
+      "name": "HD minimap",
+      "description": "A corner minimap on the TV with the HD game's own GamePad maps: islands, dungeon floors, treasure charts. Based on Minimap HD by Chironeyes (MIT).",
+      "experimental": true,
+      "authors": [
+        "ZeldaWWHDRecomp contributors"
+      ],
+      "version": "0.1.0",
+      "kind": "guest",
+      "licences": [
+        "MPL-2.0",
+        "MIT"
+      ],
+      "builds": [
+        "USA",
+        "EU"
+      ],
+      "requires": [],
+      "setup": [
+        {
+          "id": "build",
+          "type": "build_guest_mod",
+          "title": "Build HD minimap for this installation"
+        }
+      ],
+      "port_versions": {
+        "minimum": "0.4.1"
       }
     }
   ]

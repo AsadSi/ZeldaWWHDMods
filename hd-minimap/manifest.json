@@ -1,0 +1,202 @@
+{
+  "format_version": 1,
+  "id": "hd-minimap",
+  "name": "HD minimap",
+  "version": "0.1.0",
+  "game_id": "wwhd",
+  "kind": "guest",
+  "guest": {
+    "api_version": 1,
+    "elf": "mod.elf"
+  },
+  "author": "ZeldaWWHDRecomp contributors",
+  "description": "A corner minimap on the TV with the HD game's own GamePad maps: islands, dungeon floors, treasure charts. Based on Minimap HD by Chironeyes (MIT).",
+  "experimental": true,
+  "minimum_manager_version": "1.5.0",
+  "options": [
+    {
+      "id": "x",
+      "name": "Left margin (720p pixels)",
+      "type": "number",
+      "default": 12,
+      "min": 0,
+      "max": 1200,
+      "step": 1
+    },
+    {
+      "id": "y",
+      "name": "Bottom margin (720p pixels)",
+      "type": "number",
+      "default": 20,
+      "min": 0,
+      "max": 650,
+      "step": 1
+    },
+    {
+      "id": "size",
+      "name": "Compact size (720p pixels)",
+      "type": "number",
+      "default": 190,
+      "min": 96,
+      "max": 400,
+      "step": 1
+    },
+    {
+      "id": "size_expanded",
+      "name": "Expanded size (720p pixels)",
+      "type": "number",
+      "default": 300,
+      "min": 96,
+      "max": 600,
+      "step": 1
+    },
+    {
+      "id": "start_expanded",
+      "name": "Start expanded",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "id": "opacity",
+      "name": "Overall opacity",
+      "type": "number",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "faded_opacity",
+      "name": "Faded opacity",
+      "type": "number",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "fade",
+      "name": "Fade on movement (Link + camera)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "background",
+      "name": "Black background",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "background_opacity",
+      "name": "Background opacity (idle)",
+      "type": "number",
+      "default": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "parchment",
+      "name": "Parchment behind island maps",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "id": "smooth",
+      "name": "Smooth island maps",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "wind",
+      "name": "Wind direction arrow",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "dungeons",
+      "name": "Dungeon maps",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "zoom_turns",
+      "name": "Dungeon zoom turns with Link",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "id": "key_toggle",
+      "name": "Show / hide",
+      "type": "enum",
+      "default": "left",
+      "choices": [
+        "left",
+        "right",
+        "up",
+        "down",
+        "l3",
+        "r3",
+        "none"
+      ]
+    },
+    {
+      "id": "key_size",
+      "name": "Compact / expanded",
+      "type": "enum",
+      "default": "right",
+      "choices": [
+        "left",
+        "right",
+        "up",
+        "down",
+        "l3",
+        "r3",
+        "none"
+      ]
+    },
+    {
+      "id": "key_view",
+      "name": "Dungeon zoom / sailing view",
+      "type": "enum",
+      "default": "down",
+      "choices": [
+        "left",
+        "right",
+        "up",
+        "down",
+        "l3",
+        "r3",
+        "none"
+      ]
+    },
+    {
+      "id": "key_chart",
+      "name": "Next treasure chart",
+      "type": "enum",
+      "default": "l3",
+      "choices": [
+        "left",
+        "right",
+        "up",
+        "down",
+        "l3",
+        "r3",
+        "none"
+      ]
+    },
+    {
+      "id": "debug",
+      "name": "Log map positions (for bug reports)",
+      "type": "bool",
+      "default": false
+    }
+  ],
+  "setup": [
+    {
+      "id": "build",
+      "type": "build_guest_mod",
+      "title": "Build HD minimap for this installation"
+    }
+  ]
+}
