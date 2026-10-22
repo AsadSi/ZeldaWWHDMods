@@ -31,12 +31,12 @@
     },
     {
       "id": "gc-minimap",
-      "name": "GameCube sea minimap",
-      "description": "SDK v2 example: a GameCube-style island map on the Great Sea, prepared locally from your own game files.",
+      "name": "GameCube minimap",
+      "description": "GameCube-style sea and current-room dungeon maps, prepared locally from your own game files.",
       "authors": [
         "ZeldaWWHDRecomp contributors"
       ],
-      "version": "0.2.1",
+      "version": "0.3.0",
       "kind": "guest",
       "licences": [
         "MPL-2.0"
@@ -57,7 +57,7 @@
         {
           "id": "maps",
           "type": "run_tool",
-          "title": "Prepare local island maps",
+          "title": "Prepare local maps",
           "tool": "tools/prepare.py",
           "arguments": [
             "--source",
@@ -66,7 +66,8 @@
             "{data}"
           ],
           "outputs": [
-            "maps-ready.json"
+            "maps-ready.json",
+            "dungeons-ready.bin"
           ],
           "explanation": "Reads your own game files and writes derived map images only to this mod\u2019s data folder."
         },

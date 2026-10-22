@@ -25,7 +25,7 @@ SDK v2 guest mods for [ZeldaWWHDRecomp](https://github.com/ZeldaWWHDRecomp/Zelda
 | Mod | Current status | Behaviour |
 | --- | --- | --- |
 | [Heart ticker](heart-ticker/) | Existing guest example | Hearts tick down to half a heart and refill. |
-| [GameCube sea minimap](gc-minimap/) | Guest port in progress; verification pending | Position and heading on locally prepared Great Sea island maps. |
+| [GameCube minimap](gc-minimap/) | Guest implementation; 30 fps gameplay verified | Position and heading on locally prepared sea and current-room dungeon maps. |
 | [Call of the Sky](dragon/) | Experimental guest implementation; gameplay verification pending | Optional Dragon Roost song quest and Valoo ride, with its quest in the story notebook. |
 | [The Story Notebook](story-notebook/) | The story system's required package, installed with the port's setup (port 0.3.0) | The storyteller's letter brings the story notebook, with a first small quest. |
 | [Old map](story-chart/) | Experimental story example | A treasure chart sent in a letter, with no quest: salvage its chest like the game's treasures. |

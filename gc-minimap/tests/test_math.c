@@ -1,7 +1,21 @@
 #include <assert.h>
+#include <stddef.h>
 #include "../src/minimap_math.h"
+#include "../src/dungeon_math.h"
 static int near(float a,float b) { return a-b<.00001f && b-a<.00001f; }
 int main(void) {
+    _Static_assert(sizeof(dungeon_actor)==32,"TRES entry size");
+    _Static_assert(sizeof(dungeon_door)==36,"DOOR entry size");
+    _Static_assert(offsetof(dungeon_actor,x)==12,"world position offset");
+    _Static_assert(offsetof(dungeon_actor,rooms)==24,"chest/door room encoding offset");
+    assert(dungeon_chest_number((31u<<7)|6u)==31);
+    assert(dungeon_chest_on_room(4u<<7,7,7));
+    assert(!dungeon_chest_on_room(4u<<7,7,8));
+    assert(!dungeon_chest_on_room(15u<<7,7,7));
+    assert(!dungeon_chest_on_room(16u<<7,7,7));
+    assert(dungeon_door_on_room(3u|(42u<<6),3));
+    assert(dungeon_door_on_room(3u|(42u<<6),42));
+    assert(!dungeon_door_on_room(3u|(42u<<6),4));
     /* Every sector centre and both half-open outer edges. */
     for(int z=-3;z<=3;++z) for(int x=-3;x<=3;++x)
         assert(minimap_sea_room(x*100000.0f,z*100000.0f)==(z+3)*7+x+4);
@@ -53,5 +67,30 @@ int main(void) {
     /* Paused after a half-pass capture: the next full step still hides. */
     assert(!minimap_snapshot_current(&f,19));
     assert(!minimap_snapshot_current(&f,19));
+    const float dungeon_extents[4]={0,0,100,200};
+    minimap_point edge=dungeon_project(102,-4,dungeon_extents);
+    assert(edge.valid&&edge.clipped&&near(edge.x,1.02f)&&near(edge.z,-.02f));
+    edge=dungeon_project(50,100,dungeon_extents);
+    assert(edge.valid&&!edge.clipped&&near(edge.x,.5f)&&near(edge.z,.5f));
+    unsigned char ready[24]={'G','C','R','1',0,0,0,1,'T','e','s','t',0,0,0,0,0,0,0,1,0,0,0,2};
+    const char stage[9]="Test";
+    assert(dungeon_ready(ready,24,stage,0));
+    assert(dungeon_ready(ready,24,stage,33));
+    assert(!dungeon_ready(ready,24,stage,1));
+    assert(!dungeon_ready(ready,23,stage,0));
+    assert(!dungeon_ready(ready,24,"Elsewhere",0));
+    assert(!dungeon_ready(ready,24,stage,64));
+    unsigned char dungeon[48] = {'G','C','R','1',0,0,0,2,0,0,0,127};
+    /* Bounds 0,0,32,64 for B1 and 1F, stored as network IEEE floats. */
+    dungeon[20]=0x42; dungeon[21]=0; dungeon[24]=0x42; dungeon[25]=0x80;
+    dungeon[31]=129;
+    dungeon[40]=0x42; dungeon[41]=0; dungeon[44]=0x42; dungeon[45]=0x80;
+    assert(dungeon_bounds(dungeon,48,128,bounds)==127);
+    assert(near(bounds[2],32)&&near(bounds[3],64));
+    assert(dungeon_bounds(dungeon,48,123,bounds)==127);
+    assert(dungeon_bounds(dungeon,48,132,bounds)==129);
+    assert(!dungeon_bounds(dungeon,47,128,bounds));
+    assert(!dungeon_bounds(dungeon,48,122,bounds));
+    dungeon[31]=127; assert(!dungeon_bounds(dungeon,48,128,bounds));
     return 0;
 }

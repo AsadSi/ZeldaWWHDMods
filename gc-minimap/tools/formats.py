@@ -112,7 +112,11 @@ def rarc_files(raw):
     return result
 
 
-def bounds_from_dzr(data,floor=128):
+class MissingBounds(ValueError):
+    """No record for this floor, distinct from a malformed record."""
+
+
+def bounds_from_dzr(data,floor=128,detail=False):
     # Public GC dStage_roomDt_c::getMapInfo2 selects byte +0x35; d_map.cpp
     # pairs s<floor>.bti with map0 X0/Z0/X1/Z1 at +0/+4/+8/+C.
     count=u32(data,0)
@@ -127,10 +131,10 @@ def bounds_from_dzr(data,floor=128):
             record=span(data,offset+index*0x38,0x38)
             if record[0x35]!=floor: continue
             if found is not None: raise ValueError('Ambiguous floor map bounds')
-            values=struct.unpack('>4f',record[:16])
+            values=struct.unpack('>4f',record[0x18:0x28] if detail else record[:16])
             if not all(math.isfinite(v) and abs(v)<=10000000 for v in values) or values[0]>=values[2] or values[1]>=values[3]: raise ValueError('Unverified/degenerate map bounds')
             found=values
-    if found is None: raise ValueError('No verified floor 2DMA bounds; sector hidden')
+    if found is None: raise MissingBounds('No verified floor 2DMA bounds; sector hidden')
     return found
 
 
