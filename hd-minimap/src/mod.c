@@ -324,6 +324,25 @@ static void draw_sea(u32 list, float x, float y, float side, float a) {
         image(list, img_wind, x + side - s - inset * .5f, y + inset * .5f, s, s, yaw_rotation(toward), 0xffffff, a);
     }
 }
+/* a piece of the chart paper exactly where the paper under it is drawn (same texels, so an overlay of
+ * rising opacity blends the art into the paper without seams) */
+static float paper_x, paper_y, paper_size;
+static void rect_image(u32 list, u32 handle, float x, float y, float w, float h, float alpha) {
+    if (!handle || alpha <= 0 || paper_size <= 0) return;
+    element = (wwhd_hud_element){0};
+    element.kind = WWHD_HUD_IMAGE; element.anchor = WWHD_HUD_TOP_LEFT;
+    element.x = x; element.y = y; element.w = w; element.h = h; element.thickness = 1;
+    element.u0 = (x - paper_x) / paper_size; element.u1 = (x + w - paper_x) / paper_size;
+    element.v0 = (y - paper_y) / paper_size; element.v1 = (y + h - paper_y) / paper_size;
+    if (element.u0 < 0) element.u0 = 0;
+    if (element.v0 < 0) element.v0 = 0;
+    if (element.u1 > 1) element.u1 = 1;
+    if (element.v1 > 1) element.v1 = 1;
+    if (element.u1 < element.u0 || element.v1 < element.v0) return;
+    element.image = handle;
+    element.rgba = 0xffffff00u | (u32)(alpha * 255.0f + .5f);
+    wwhd_hud_emit(list, &element);
+}
 static void draw_chart(u32 list, float x, float y, float side, float a) {
     if (!snap.chart_count) return;
     if (ui.chart >= snap.chart_count) ui.chart = 0;
@@ -339,8 +358,26 @@ static void draw_chart(u32 list, float x, float y, float side, float a) {
     float k = hdm_finite(world) && world > 1000 && world < 1e6f ? inner / world : 0;
     float ax = (float)(r[2] - r[0]) * k, ay = (float)(r[3] - r[1]) * k;
     clip(list, 1, x + inset, y + inset, inner, inner);
-    image(list, img_chart_base, x + inset - inner * .1f, y + inset - inner * .1f, inner * 1.2f, inner * 1.2f, 0, 0xffffff, a);
+    paper_x = x + inset - inner * .1f; paper_y = y + inset - inner * .1f; paper_size = inner * 1.2f;
+    image(list, img_chart_base, paper_x, paper_y, paper_size, paper_size, 0, 0xffffff, a);
     image(list, img_chart, x + inset + ax, y + inset + ay, inner, inner, 0, 0xffffff, a);
+    /* where the moved art ends inside the chart, it fades into the chart paper (paper strips of rising
+     * opacity over its last eighth), so no cut edge shows */
+    {
+        float left = x + inset, top = y + inset, f = inner * .14f;
+        float art_l = left + ax, art_t = top + ay, art_r = art_l + inner, art_b = art_t + inner;
+        /* nested strips, each from its step to the art's end: after n of N layers the paper covers n / N
+         * (layer n with opacity 1 / (N - n + 1)), with no seams between the strips */
+        const int steps = 16;
+        float w = f / steps;
+        for (int n = 1; n <= steps; ++n) {
+            float o = a / (float)(steps - n + 1 + 1), d = (n - 1) * w;
+            if (art_r < left + inner) rect_image(list, img_chart_base, art_r - f + d, top, f - d, inner, o);
+            if (art_l > left) rect_image(list, img_chart_base, art_l, top, f - d, inner, o);
+            if (art_b < top + inner) rect_image(list, img_chart_base, left, art_b - f + d, inner, f - d, o);
+            if (art_t > top) rect_image(list, img_chart_base, left, art_t, inner, f - d, o);
+        }
+    }
     if (!img_mark) img_mark = game_image("TreMap_00/MapTreasureMark_00^t#P_TreasureMark_00");
     if (!img_mark_fill) img_mark_fill = game_image("TreMap_00/MapTreasureMark_00^t#P_TreasureMarkColor_00");
     float m = inner * .15f, cx = x + side / 2, cy = y + side / 2;
