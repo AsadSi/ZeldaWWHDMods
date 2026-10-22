@@ -15,7 +15,6 @@ WWHD_GAME_FUNC(0x025B8568, s32, sector_discovered, (u32 player_map, s32 cell)); 
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_player_map_c_isGetMap, s32, chart_owned, (u32 player_map, s32 index));
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_player_map_c_isOpenMap, s32, chart_open, (u32 player_map, s32 index));
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isDungeonItem, s32, dungeon_item, (u32 membit, s32 item));
-WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isVisitedRoom, s32, room_visited, (u32 membit, s32 room));
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isTbox, s32, chest_open, (u32 membit, s32 chest));
 WWHD_GAME_FUNC(WWHD_ADDR_dComIfGs_isStageTbox, s32, stage_chest_open, (s32 stage, s32 chest));
 WWHD_GAME_FUNC(WWHD_ADDR_dComIfGs_isStageMap, s32, stage_map, (s32 stage));
@@ -28,7 +27,7 @@ WWHD_GAME_FUNC(0x025C4734, u8*, stage_treasures, (void));
 
 /* play (dComIfGp) and save offsets used here */
 #define PLAY_STAGE 0x5150           /* dStage_stageDt_c: +0x48 stage info, +0x74 DMAP */
-#define PLAY_PARTNER 0x5B3C         /* the companion (Medli / Makar) or the ship */
+#define PLAY_PARTNER 0x5B38         /* the second player slot: Medli or Makar in their temples */
 #define PLAY_STATUS0 0x5CD8
 #define PLAY_STATUS1 0x5CDC
 #define SAVE_PLAYER_MAP 0xE4
@@ -58,9 +57,8 @@ static struct {
     u32 wind;
     int chart_set, chart_count;
     struct { s8 sea, save; } charts[MAX_CHARTS];
-    float origin_x, origin_z, size;
+    float origin_x, origin_z, size, map_width;
     int dmap;
-    unsigned long long visited_lo, visited_hi;
     int point_count;
     struct { float x, z; } points[MAX_POINTS];
     char stage[9];
@@ -83,8 +81,6 @@ static int island_room = -1, island_full = -1, chart_key = -1;
 static struct { int pane; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
 static int room_count, rooms_dungeon = -1, rooms_floor = -1;
 static float floor_min_x, floor_min_y, floor_max_x, floor_max_y;
-static wwhd_game_pane all_pane;
-static int all_pane_ok;
 
 static wwhd_hud_element element;
 static char name[96];
@@ -131,7 +127,7 @@ static void forget_images(void) {
     img_island = img_chart = 0; island_room = island_full = chart_key = -1;
     for (int i = 0; i < 4; ++i) img_feedback[i] = 0;
     for (int i = 0; i < room_count; ++i) rooms[i].image = 0;
-    room_count = 0; rooms_dungeon = rooms_floor = -1; all_pane_ok = 0;
+    room_count = 0; rooms_dungeon = rooms_floor = -1;
 }
 static void static_images(void) {
     if (!img_frame) img_frame = wwhd_hud_texture(WWHD_HUD_PACKAGE, "assets/frame.png");
@@ -172,11 +168,6 @@ static void floor_rooms(int dungeon, int floor) {
     forget_rooms();
     rooms_dungeon = dungeon; rooms_floor = floor;
     if (!hdm_floor_tag(floor, tag)) return;
-    hdm_floor_layout(name, dungeon);
-    int i = hdm_put(key, 0, "layout-pane:");
-    i = hdm_put(key, i, name);
-    hdm_put(key, i, "/N_All_00");
-    all_pane_ok = wwhd_game_pane_get(key, &all_pane);
     floor_min_x = floor_min_y = 1e9f; floor_max_x = floor_max_y = -1e9f;
     for (int p = 0; p < MAX_ROOMS; ++p) {
         hdm_room_pane_key(key, dungeon, p);
@@ -186,7 +177,8 @@ static void floor_rooms(int dungeon, int floor) {
         rooms[room_count].pane = p;
         rooms[room_count].x = pane.x; rooms[room_count].y = pane.y;
         rooms[room_count].w = pane.w; rooms[room_count].h = pane.h;
-        hdm_room_texture(name, dungeon, pane.texture, p);
+        /* every room with the plan's room colours (room 1's material: the entrance pane has a dark one) */
+        hdm_room_texture(name, dungeon, pane.texture, 1);
         rooms[room_count].image = game_image(name);
         if (pane.x - pane.w / 2 < floor_min_x) floor_min_x = pane.x - pane.w / 2;
         if (pane.x + pane.w / 2 > floor_max_x) floor_max_x = pane.x + pane.w / 2;
@@ -195,13 +187,24 @@ static void floor_rooms(int dungeon, int floor) {
         if (++room_count == MAX_ROOMS) break;
     }
 }
-/* world X/Z -> the floor layout's root coordinates: the stage's DMAP entry gives the world point at the
- * centre of the layout's map area (N_All_00) and the world size spanned by its width */
+/* world X/Z -> the floor layout's root coordinates, as the game places its map markers: relative to the
+ * stage's DMAP origin, scaled by the game's map width ratio over the DMAP scale entry (hdDungeonMap_c
+ * updateMapBounds); +y up */
 static void world_to_layout(float x, float z, float* lx, float* ly) {
-    float k = snap.size > 0 && all_pane_ok ? all_pane.w / snap.size : 0;
-    float cx = all_pane_ok ? all_pane.x : 0, cy = all_pane_ok ? all_pane.y : 0;
-    *lx = cx + (x - snap.origin_x) * k;
-    *ly = cy - (z - snap.origin_z) * k;
+    float k = snap.size > 0 ? snap.map_width / snap.size : 0;
+    *lx = (x - snap.origin_x) * k;
+    *ly = -(z - snap.origin_z) * k;
+}
+/* the floor's room pane under a layout point (the current room on the plan), or -1 */
+static int room_at(float lx, float ly) {
+    int best = -1;
+    float best_area = 1e30f;
+    for (int i = 0; i < room_count; ++i) {
+        float dx = lx - rooms[i].x, dy = ly - rooms[i].y;
+        if (dx < -rooms[i].w / 2 || dx > rooms[i].w / 2 || dy < -rooms[i].h / 2 || dy > rooms[i].h / 2) continue;
+        if (rooms[i].w * rooms[i].h < best_area) { best_area = rooms[i].w * rooms[i].h; best = rooms[i].pane; }
+    }
+    return best;
 }
 
 /* ---- drawing ---- */
@@ -304,6 +307,7 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     float inset = side * 6.0f / 256.0f, inner = side - 2 * inset;
     float link_x, link_y;
     world_to_layout(snap.x, snap.z, &link_x, &link_y);
+    int here = room_at(link_x, link_y);
     hdm_view view;
     if (ui.zoom) {
         float span = (floor_max_x - floor_min_x > floor_max_y - floor_min_y ? floor_max_x - floor_min_x : floor_max_y - floor_min_y) * .45f;
@@ -315,12 +319,11 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     clip(list, 1, x + inset, y + inset, inner, inner);
     for (int i = 0; i < room_count; ++i) {
         int p = rooms[i].pane;
-        int visited = p < 64 && ((p < 32 ? snap.visited_lo >> p : snap.visited_hi >> (p - 32)) & 1);
-        u32 rgb = p == snap.room ? 0xffffff : visited ? 0xd8d8d8 : 0x8c8c8c;
+        u32 rgb = p == here ? 0xffffff : 0xb4b4b4;
         float px, py;
         hdm_to_panel(&view, inner, rooms[i].x - rooms[i].w / 2, rooms[i].y + rooms[i].h / 2, &px, &py);
         image(list, rooms[i].image, x + inset + px, y + inset + py, rooms[i].w * view.scale, rooms[i].h * view.scale, 0, rgb,
-              visited || p == snap.room ? a : a * .75f);
+              p == here ? a : a * .85f);
     }
     if (snap.has_compass) {
         if (!img_chest) img_chest = game_image("DungeonMapTreasure_00/MapTreasure_00^t");
@@ -360,8 +363,15 @@ static void draw(u32 list) {
         wwhd_log_int("draw.paused", game_paused());
         wwhd_log_float("sea.x", snap.x); wwhd_log_float("sea.z", snap.z);
         wwhd_log_float("sea.island_dx", snap.island_dx); wwhd_log_float("sea.island_dz", snap.island_dz);
-        wwhd_log_int("sea.covered", snap.covered);
+        wwhd_log_int("sea.covered", snap.covered); wwhd_log_int("sea.ship", snap.on_ship); wwhd_log_int("sea.charts", snap.chart_count);
+        wwhd_log_int("sea.chart_set", snap.chart_set);
+        {
+            u8* play = wwhd_play_get();
+            fopAc_ac_c* ship = play ? *(fopAc_ac_c**)(play + 0x5B3C) : 0;
+            if (ship) { wwhd_log_float("ship.x", ship->current.pos.x); wwhd_log_float("ship.y", ship->current.pos.y); wwhd_log_float("ship.z", ship->current.pos.z); wwhd_log_int("ship.yaw", ship->shape_angle.y); }
+        }
     }
+    /* Link's step runs in the logic step before this callback; in menus or while paused it doesn't */
     if (!snap.visible || game_paused() || wwhd_logic_step() > captured_step + 1) return;
     if (ui.feedback && ui.feedback_time > 0) {
         /* the shortcut's picture for a moment after a press (Minimap HD's icons) */
@@ -369,14 +379,15 @@ static void draw(u32 list) {
         float t = ui.feedback_time > .3f ? 1 : ui.feedback_time / .3f, s = 56;
         image(list, img_feedback[ui.feedback], opt.x, 720 - opt.bottom - s, s, s, 0, 0xffffff, t * (opt.opacity > .3f ? opt.opacity : .3f));
     }
-    if (ui.hidden) return;  /* Link's step ran in the step just finished */
+    if (ui.hidden) return;
     float rest = opt.opacity, a = opt.fade ? hdm_fade_opacity(&fade, rest, opt.faded) : rest;
     if (a <= 0) return;
     static_images();
     if (snap.mode == MODE_SEA) {
         float side = snap.on_ship ? opt.side_compact : (ui.expanded ? opt.side_expanded : opt.side_compact);
         if (snap.on_ship && ui.sea_view == 0) return;
-        float x = opt.x, y = 720 - side - opt.bottom;
+        /* aboard, above the game's compasses (bottom left) */
+        float x = opt.x, y = 720 - side - opt.bottom - (snap.on_ship ? 110 : 0);
         draw_sea(list, x, y, side, a);
         if (snap.on_ship && ui.sea_view == 2 && snap.discovered) draw_chart(list, x + side + 8, y, side, a);
     } else if (snap.mode == MODE_DUNGEON) {
@@ -501,7 +512,7 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
         }
         snap.wind = wind_angle();
         snap.chart_set = *(u8*)(save + SAVE_CHART_SET) & 3;
-        if (snap.on_ship) read_charts(save); else snap.chart_count = 0;
+        read_charts(save);
         snap.visible = 1;
         return;
     }
@@ -510,20 +521,27 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
     u32 membit = save + SAVE_MEMBIT;
     int forsaken = snap.dungeon == 0;
     snap.has_map = forsaken ? stage_map(2) != 0 : dungeon_item(membit, 0) != 0;
+    if (opt.debug && (wwhd_logic_step() % 60) == 0) { wwhd_log_int("dungeon", snap.dungeon); wwhd_log_int("dungeon.map", snap.has_map); }
     if (!snap.has_map) { snap.mode = MODE_NONE; return; }
     snap.has_compass = forsaken ? stage_compass(2) != 0 : dungeon_item(membit, 1) != 0;
     read_stage(play);
+    /* the game's map width ratio (the GamePad map pane over its reference width): from the game's own
+     * dungeon map when it has one, else the value it has in every dungeon */
+    snap.map_width = 1.68919f;
+    {
+        u32 ui_scene = *(u32*)&WWHD_GAME_DATA(0x101F8344, u8);
+        u32 coord = ui_scene ? *(u32*)(ui_scene + 0x218) : 0;
+        u32 dmap_obj = coord ? *(u32*)(coord + 0x2C) : 0;
+        if (dmap_obj) { f32 w = *(f32*)(dmap_obj + 0x3AC); if (hdm_finite(w) && w > .1f && w < 10) snap.map_width = w; }
+    }
     if (!snap.dmap) { snap.mode = MODE_NONE; return; }
     snap.floor = stage_floor(0, snap.y + floor_offset(play));
-    snap.visited_lo = snap.visited_hi = 0;
-    for (int r = 0; r < 64; ++r)
-        if (room_visited(membit, r)) { if (r < 32) snap.visited_lo |= 1ull << r; else snap.visited_hi |= 1ull << (r - 32); }
     snap.point_count = 0;
     if (snap.has_compass) {
         u8* table = stage_treasures();
-        if (table) capture_chests(membit, table + 4, *(s32*)table, 1, 2);
+        if (table) capture_chests(membit, table + 4, *(s32*)table, 0, 1);  /* the whole floor, as the plan shows it */
         u8* room = room_data((u32)play + 0x51cc, snap.room);
-        if (room) { u8* t = *(u8**)(room + 0x40); if (t) capture_chests(membit, *(u8**)(t + 4), *(s32*)t, 0, 2); }
+        if (room) { u8* t = *(u8**)(room + 0x40); if (t) capture_chests(membit, *(u8**)(t + 4), *(s32*)t, 0, 1); }
     }
     snap.companion = 0;
     if (snap.dungeon == 4 || snap.dungeon == 5) {
@@ -537,9 +555,31 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
         float lx, ly;
         world_to_layout(snap.x, snap.z, &lx, &ly);
         wwhd_log_int("room", snap.room); wwhd_log_int("floor", snap.floor);
+        wwhd_log_hex("partner.5B30", *(u32*)(play + 0x5B30)); wwhd_log_hex("partner.5B34", *(u32*)(play + 0x5B34));
+        wwhd_log_hex("partner.5B38", *(u32*)(play + 0x5B38)); wwhd_log_hex("partner.5B3C", *(u32*)(play + 0x5B3C));
+        wwhd_log_hex("link", (u32)actor); wwhd_log_int("companion", snap.companion); wwhd_log_int("chests", snap.point_count);
+        wwhd_log_int("compass", snap.has_compass);
         wwhd_log_float("x", snap.x); wwhd_log_float("z", snap.z);
         wwhd_log_float("dmap.x", snap.origin_x); wwhd_log_float("dmap.z", snap.origin_z); wwhd_log_float("dmap.size", snap.size);
         wwhd_log_float("layout.x", lx); wwhd_log_float("layout.y", ly);
+        /* the game's own dungeon map object, for calibration only (read, never written) */
+        u32 ui_scene = *(u32*)&WWHD_GAME_DATA(0x101F8344, u8);
+        u32 coord = ui_scene ? *(u32*)(ui_scene + 0x218) : 0;
+        u32 dmap_obj = coord ? *(u32*)(coord + 0x2C) : 0;
+        if (dmap_obj) {
+            wwhd_log_float("game.origin.x", *(f32*)(dmap_obj + 0x2FC)); wwhd_log_float("game.origin.y", *(f32*)(dmap_obj + 0x300));
+            wwhd_log_float("game.size", *(f32*)(dmap_obj + 0x304)); wwhd_log_float("game.rotation", *(f32*)(dmap_obj + 0x308));
+            wwhd_log_float("game.scale", *(f32*)(dmap_obj + 0x30C)); wwhd_log_float("game.width", *(f32*)(dmap_obj + 0x3AC));
+            wwhd_log_float("game.pane.x", *(f32*)(dmap_obj + 0x3B0)); wwhd_log_float("game.pane.y", *(f32*)(dmap_obj + 0x3B4));
+            wwhd_log_int("game.floor", *(u8*)(dmap_obj + 0x3D0));
+            u32 map = *(u32*)(dmap_obj + 0x920);
+            if (map) {
+                wwhd_log_float("map.origin.x", *(f32*)(map + 0x4E0)); wwhd_log_float("map.origin.y", *(f32*)(map + 0x4E4));
+                wwhd_log_float("map.scale", *(f32*)(map + 0x4EC));
+                wwhd_log_float("map.current.x", *(f32*)(map + 0x4F0)); wwhd_log_float("map.current.y", *(f32*)(map + 0x4F4));
+                wwhd_log_float("map.target.x", *(f32*)(map + 0x4F8)); wwhd_log_float("map.target.y", *(f32*)(map + 0x4FC));
+            }
+        }
         for (int i = 0; i < room_count; ++i) if (rooms[i].pane == snap.room) {
             wwhd_log_float("pane.x", rooms[i].x); wwhd_log_float("pane.y", rooms[i].y);
             wwhd_log_float("pane.w", rooms[i].w); wwhd_log_float("pane.h", rooms[i].h);

@@ -16,7 +16,7 @@ its own implementation for the port; it does not use the pack's patches.
 | Undiscovered sector | No map; a faded map with a question mark |
 | Out at sea, away from the island | Nothing; the game's own compasses |
 | Sailing, with an owned treasure chart | Optionally the chart beside the minimap (Triforce charts once deciphered) |
-| Dungeon with the Map | The plan of Link's current floor; visited rooms brighter, the current room brightest |
+| Dungeon with the Map | The plan of Link's current floor, with Link's room highlighted |
 | Dungeon with the Compass | Unopened chests on this floor too |
 | Earth / Wind Temple | Medli or Makar when they are on Link's floor |
 | Dungeon without the Map, other places | No minimap |
@@ -49,7 +49,8 @@ restart, like every code mod option.
 
 ## Known limits (0.1.0)
 
-- No boss icon and no door markers yet. The dungeon zoom does not turn with the camera.
+- No boss icon and no door markers yet. Rooms are not yet told apart by visited or not (the game's room-to-plan
+  table is not read yet). The dungeon zoom does not turn with the camera.
 - The treasure chart is shown without its title ribbon and without Link's position.
 
 ## Tests
