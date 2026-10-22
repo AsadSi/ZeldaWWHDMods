@@ -436,6 +436,15 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     frame(list, x, y, side, a);
 }
 
+/* the shortcut's picture for a moment after a press (Minimap HD's icons), drawn last so that it stays on
+ * top of the map, at the panel's top-right corner */
+static void feedback(u32 list, float side) {
+    if (!ui.feedback || ui.feedback_time <= 0) return;
+    if (!img_feedback[ui.feedback]) img_feedback[ui.feedback] = wwhd_hud_texture(WWHD_HUD_PACKAGE, feedback_art[ui.feedback]);
+    float t = ui.feedback_time > .3f ? 1 : ui.feedback_time / .3f, size = 56;
+    float x = opt.x + side - size * .75f, y = 720 - opt.bottom - side - size * .25f;
+    image(list, img_feedback[ui.feedback], x, y, size, size, 0, 0xffffff, t * (opt.opacity > .3f ? opt.opacity : .3f));
+}
 static unsigned long long captured_step = ~0ull;
 static void draw(u32 list) {
     unsigned long long epoch = wwhd_hud_epoch();
@@ -458,13 +467,7 @@ static void draw(u32 list) {
     }
     /* Link's step runs in the logic step before this callback; in menus or while paused it doesn't */
     if (!snap.visible || game_paused() || wwhd_logic_step() > captured_step + 1) return;
-    if (ui.feedback && ui.feedback_time > 0) {
-        /* the shortcut's picture for a moment after a press (Minimap HD's icons) */
-        if (!img_feedback[ui.feedback]) img_feedback[ui.feedback] = wwhd_hud_texture(WWHD_HUD_PACKAGE, feedback_art[ui.feedback]);
-        float t = ui.feedback_time > .3f ? 1 : ui.feedback_time / .3f, s = 56;
-        image(list, img_feedback[ui.feedback], opt.x, 720 - opt.bottom - s, s, s, 0, 0xffffff, t * (opt.opacity > .3f ? opt.opacity : .3f));
-    }
-    if (ui.hidden) return;
+    if (ui.hidden) { feedback(list, opt.side_compact); return; }
     float rest = opt.opacity, a = opt.fade ? hdm_fade_opacity(&fade, rest, opt.faded) : rest;
     if (a <= 0) return;
     static_images();
@@ -479,6 +482,7 @@ static void draw(u32 list) {
         float side = ui.expanded ? opt.side_expanded : opt.side_compact;
         draw_dungeon(list, opt.x, 720 - side - opt.bottom, side, a);
     }
+    feedback(list, ui.expanded && !(snap.mode == MODE_SEA && snap.on_ship) ? opt.side_expanded : opt.side_compact);
 }
 
 /* ---- per-step capture (Link's own step, so it doesn't run in menus or while paused) ---- */
