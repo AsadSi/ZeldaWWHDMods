@@ -115,6 +115,20 @@ static inline int hdm_dungeon_of(const char* stage) {
     return -1;
 }
 
+/* ---- the game's room table of a dungeon plan: per plan room (marker, floor, room), three words each
+ * (the floor screens' marker mappings that colour a plan room for a visited or current room) ---- */
+static inline int hdm_plan_room(const unsigned int* table, int count, int pane, int* floor, int* room) {
+    if (!table || count <= 0 || count > 40) return 0;
+    for (int i = 0; i < count; ++i) {
+        const unsigned int* e = table + 3 * i;
+        if ((int)e[0] != pane) continue;
+        if (e[1] < 0x78 || e[1] > 0x88 || e[2] > 63) return 0;
+        *floor = (int)e[1]; *room = (int)e[2];
+        return 1;
+    }
+    return 0;
+}
+
 /* ---- fading: 60 ms out on input, back over 200 ms after 100 ms without input ---- */
 typedef struct { float level, idle; } hdm_fade;   /* level 1 = resting opacity, 0 = faded opacity */
 static inline void hdm_fade_step(hdm_fade* f, int active, float dt) {

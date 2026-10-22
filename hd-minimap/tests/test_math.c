@@ -108,7 +108,20 @@ static void fitting(void) {
     assert(fabsf(x - 8) < 1e-3f && fabsf(y - 8) < 1e-3f);
 }
 
+static void plan_rooms(void) {
+    /* a made-up plan: room 15 on plan pane 0 (1F), room 2 on panes 1 (1F) and 2 (B1) */
+    const unsigned int table[] = {0, 0x80, 15, 1, 0x80, 2, 2, 0x7F, 2};
+    int floor, room;
+    assert(hdm_plan_room(table, 3, 0, &floor, &room) && floor == 0x80 && room == 15);
+    assert(hdm_plan_room(table, 3, 2, &floor, &room) && floor == 0x7F && room == 2);
+    assert(!hdm_plan_room(table, 3, 3, &floor, &room));
+    assert(!hdm_plan_room(0, 3, 0, &floor, &room) && !hdm_plan_room(table, 0, 0, &floor, &room));
+    const unsigned int bad[] = {0, 0x20, 1};   /* not a floor number: not the table we know */
+    assert(!hdm_plan_room(bad, 1, 0, &floor, &room));
+}
+
 int main(void) {
+    plan_rooms();
     sectors();
     location_table();
     names();

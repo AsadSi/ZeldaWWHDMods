@@ -16,6 +16,7 @@ WWHD_GAME_FUNC(WWHD_ADDR_dSv_player_map_c_isGetMap, s32, chart_owned, (u32 playe
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_player_map_c_isOpenMap, s32, chart_open, (u32 player_map, s32 index));
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isDungeonItem, s32, dungeon_item, (u32 membit, s32 item));
 WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isTbox, s32, chest_open, (u32 membit, s32 chest));
+WWHD_GAME_FUNC(WWHD_ADDR_dSv_memBit_c_isVisitedRoom, s32, room_visited, (u32 membit, s32 room));
 WWHD_GAME_FUNC(WWHD_ADDR_dComIfGs_isStageTbox, s32, stage_chest_open, (s32 stage, s32 chest));
 WWHD_GAME_FUNC(WWHD_ADDR_dComIfGs_isStageMap, s32, stage_map, (s32 stage));
 WWHD_GAME_FUNC(WWHD_ADDR_dComIfGs_isStageCompass, s32, stage_compass, (s32 stage));
@@ -58,6 +59,7 @@ static struct {
     int chart_set, chart_count;
     struct { s8 sea, save; } charts[MAX_CHARTS];
     float origin_x, origin_z, size, map_width;
+    unsigned long long visited;
     int dmap;
     int point_count;
     struct { float x, z; } points[MAX_POINTS];
@@ -78,7 +80,21 @@ static unsigned long long image_epoch;
 static u32 img_frame, img_wind, img_unknown, img_face, img_arrow, img_chest, img_medli, img_makar, img_ship, img_base;
 static u32 img_island, img_chart;
 static int island_room = -1, island_full = -1, chart_key = -1;
-static struct { int pane; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
+static struct { int pane, room; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
+/* the floor screens' room tables (DungeonMapFloor_00..05): (plan room, floor, room) per plan room */
+static const unsigned int* plan_table(int dungeon, int* count) {
+    static const int counts[6] = {15, 21, 27, 22, 22, 18};
+    if (dungeon < 0 || dungeon > 5) return 0;
+    *count = counts[dungeon];
+    switch (dungeon) {
+        case 0: return (const unsigned int*)&WWHD_GAME_DATA(0x100F10B0, u8);
+        case 1: return (const unsigned int*)&WWHD_GAME_DATA(0x100F1594, u8);
+        case 2: return (const unsigned int*)&WWHD_GAME_DATA(0x100F1AB4, u8);
+        case 3: return (const unsigned int*)&WWHD_GAME_DATA(0x100F2064, u8);
+        case 4: return (const unsigned int*)&WWHD_GAME_DATA(0x100F2594, u8);
+        default: return (const unsigned int*)&WWHD_GAME_DATA(0x100F2ABC, u8);
+    }
+}
 static int room_count, rooms_dungeon = -1, rooms_floor = -1;
 static float floor_min_x, floor_min_y, floor_max_x, floor_max_y;
 
@@ -173,8 +189,15 @@ static void floor_rooms(int dungeon, int floor) {
         hdm_room_pane_key(key, dungeon, p);
         if (!wwhd_game_pane_get(key, &pane) || !(pane.flags & 2)) continue;
         pane.texture[31] = 0;
-        if (!hdm_texture_on_floor(pane.texture, tag)) continue;
+        int table_floor = 0, table_room = -1, count = 0;
+        const unsigned int* table = plan_table(dungeon, &count);
+        if (hdm_plan_room(table, count, p, &table_floor, &table_room)) {
+            if (table_floor != floor) continue;
+        } else if (!hdm_texture_on_floor(pane.texture, tag)) {
+            continue;
+        }
         rooms[room_count].pane = p;
+        rooms[room_count].room = table_room;
         rooms[room_count].x = pane.x; rooms[room_count].y = pane.y;
         rooms[room_count].w = pane.w; rooms[room_count].h = pane.h;
         /* every room with the plan's room colours (room 1's material: the entrance pane has a dark one) */
@@ -319,11 +342,14 @@ static void draw_dungeon(u32 list, float x, float y, float side, float a) {
     clip(list, 1, x + inset, y + inset, inner, inner);
     for (int i = 0; i < room_count; ++i) {
         int p = rooms[i].pane;
-        u32 rgb = p == here ? 0xffffff : 0xb4b4b4;
+        int room = rooms[i].room;
+        int current = room >= 0 ? room == snap.room : p == here;
+        int visited = room >= 0 && room < 64 && ((snap.visited >> room) & 1);
+        u32 rgb = current ? 0xffffff : visited ? 0xc8c8c8 : 0x707070;
         float px, py;
         hdm_to_panel(&view, inner, rooms[i].x - rooms[i].w / 2, rooms[i].y + rooms[i].h / 2, &px, &py);
         image(list, rooms[i].image, x + inset + px, y + inset + py, rooms[i].w * view.scale, rooms[i].h * view.scale, 0, rgb,
-              p == here ? a : a * .85f);
+              current || visited ? a : a * .7f);
     }
     if (snap.has_compass) {
         if (!img_chest) img_chest = game_image("DungeonMapTreasure_00/MapTreasure_00^t");
@@ -536,6 +562,15 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
     }
     if (!snap.dmap) { snap.mode = MODE_NONE; return; }
     snap.floor = stage_floor(0, snap.y + floor_offset(play));
+    snap.visited = 0;
+    {
+        int count = 0;
+        const unsigned int* table = plan_table(snap.dungeon, &count);
+        for (int i = 0; table && i < count; ++i) {
+            int room = (int)table[3 * i + 2];
+            if (room >= 0 && room < 64 && room_visited(membit, room)) snap.visited |= 1ull << room;
+        }
+    }
     snap.point_count = 0;
     if (snap.has_compass) {
         u8* table = stage_treasures();
@@ -559,6 +594,12 @@ WWHD_HOOK_RETURN(WWHD_ADDR_daPy_Execute, capture, (fopAc_ac_c* actor)) {
         wwhd_log_hex("partner.5B38", *(u32*)(play + 0x5B38)); wwhd_log_hex("partner.5B3C", *(u32*)(play + 0x5B3C));
         wwhd_log_hex("link", (u32)actor); wwhd_log_int("companion", snap.companion); wwhd_log_int("chests", snap.point_count);
         wwhd_log_int("compass", snap.has_compass);
+        {
+            int count = 0;
+            const unsigned int* table = plan_table(snap.dungeon, &count);
+            for (int i = 0; table && i < count; ++i) { wwhd_log_int("plan.marker", (int)table[3*i]); wwhd_log_hex("plan.floor", table[3*i+1]); wwhd_log_int("plan.room", (int)table[3*i+2]); }
+            wwhd_log_hex("visited", (u32)snap.visited);
+        }
         wwhd_log_float("x", snap.x); wwhd_log_float("z", snap.z);
         wwhd_log_float("dmap.x", snap.origin_x); wwhd_log_float("dmap.z", snap.origin_z); wwhd_log_float("dmap.size", snap.size);
         wwhd_log_float("layout.x", lx); wwhd_log_float("layout.y", ly);
