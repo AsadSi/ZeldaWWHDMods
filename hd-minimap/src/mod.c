@@ -82,7 +82,7 @@ static int initialized;
 /* images */
 static unsigned long long image_epoch;
 static u32 img_frame, img_wind, img_unknown, img_face, img_arrow, img_chest, img_medli, img_makar, img_ship, img_base, img_door, img_boss;
-static u32 img_island, img_chart, img_ribbon;
+static u32 img_island, img_chart, img_ribbon, img_chart_base;
 static int island_room = -1, island_full = -1, chart_key = -1;
 static struct { int pane, room; float x, y, w, h; u32 image; } rooms[MAX_ROOMS];
 /* the floor screens' room tables (DungeonMapFloor_00..05): (plan room, floor, room) per plan room */
@@ -145,7 +145,7 @@ static void forget_rooms(void) {
 static void forget_images(void) {
     /* after a state load the handles are gone: just forget them */
     img_frame = img_wind = img_unknown = img_face = img_arrow = img_chest = img_medli = img_makar = img_ship = img_base = img_door = img_boss = 0;
-    img_island = img_chart = img_ribbon = 0; island_room = island_full = chart_key = -1;
+    img_island = img_chart = img_ribbon = img_chart_base = 0; island_room = island_full = chart_key = -1;
     for (int i = 0; i < 4; ++i) img_feedback[i] = 0;
     for (int i = 0; i < room_count; ++i) rooms[i].image = 0;
     room_count = 0; rooms_dungeon = rooms_floor = -1;
@@ -325,8 +325,12 @@ static void draw_chart(u32 list, float x, float y, float side, float a) {
     if (ui.chart >= snap.chart_count) ui.chart = 0;
     chart_image(snap.charts[ui.chart].sea);
     float inset = side * 6.0f / 256.0f, inner = side - 2 * inset;
-    if (opt.background) rect(list, x + inset, y + inset, inner, inner, 0x000000, opt.bg_opacity * a / (opt.opacity > 0 ? opt.opacity : 1));
+    /* the chart's own blue paper (TreMap_00's base) under the sector's chart art */
+    if (!img_chart_base) img_chart_base = game_image("TreMap_00/MapArea_00^t#P_TreMapBase_00");
+    clip(list, 1, x + inset, y + inset, inner, inner);
+    image(list, img_chart_base, x + inset - inner * .1f, y + inset - inner * .1f, inner * 1.2f, inner * 1.2f, 0, 0xffffff, a);
     image(list, img_chart, x + inset, y + inset, inner, inner, 0, 0xffffff, a);
+    clip(list, 0, 0, 0, 0, 0);
     frame(list, x, y, side, a);
     /* the game's title ribbon with the chart's number (language-neutral; the chart names are game text) */
     if (!img_ribbon) img_ribbon = game_image("MenuMap_00/TitleBase_00^t#P_TitleTreBase_00");
@@ -342,7 +346,7 @@ static void draw_chart(u32 list, float x, float y, float side, float a) {
     element.kind = WWHD_HUD_TEXT; element.anchor = WWHD_HUD_TOP_LEFT;
     element.x = rx + rw / 2 - rh * (n < 10 ? .18f : .34f); element.y = ry + rh * .12f; element.size = rh * .7f;
     element.thickness = 1; element.u1 = element.v1 = 1;
-    element.rgba = 0xffffff00u | (u32)(a * 255.0f);
+    element.rgba = 0x1c4f8a00u | (u32)(a * 255.0f);
     element.text = number; element.text_bytes = n < 10 ? 1 : 2;
     wwhd_hud_emit(list, &element);
 }
