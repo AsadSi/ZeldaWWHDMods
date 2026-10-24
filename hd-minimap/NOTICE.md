@@ -1,6 +1,6 @@
 # Notice
 
-HD minimap is based on **Minimap HD** by Chironeyes
+HD minimap is based on **Minimap HD** by [@Chironeyes](https://github.com/Chironeyes)
 (<https://github.com/Chironeyes/The.Wind.Waker.HD-Minimap.HD>, version 1.2.1). Its README and
 documentation served as the specification of this mod's behaviour.
 
