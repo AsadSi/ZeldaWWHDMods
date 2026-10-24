@@ -4,7 +4,7 @@ A minimap in a corner of the TV picture, drawn with the HD game's own GamePad ma
 dungeon floor plans, treasure charts and the game's map markers. It follows the game's map rules, so
 no GameCube copy is needed.
 
-Based on **Minimap HD** by Chironeyes (MIT). That Cemu pack's documentation is the specification of
+Based on **[Minimap HD](https://github.com/Chironeyes/The.Wind.Waker.HD-Minimap.HD)** by [@Chironeyes](https://github.com/Chironeyes) (MIT). That Cemu pack's documentation is the specification of
 this mod, and its frame, wind arrow and shortcut icons are used here (see `NOTICE.md`). This mod is
 its own implementation for the port; it does not use the pack's patches.
 
