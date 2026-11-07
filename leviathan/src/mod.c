@@ -25,6 +25,8 @@ WWHD_GAME_FUNC(0x025DEAB4, void, lv_set_layer, (u32 layer));     /* fpcLy_SetCur
 WWHD_GAME_FUNC(0x0257E594, void, lv_windpower, (f32 power));     /* dKyw_custom_windpower: above 0 overrides the wind, 0 hands it back */
 WWHD_GAME_FUNC(0x0255671C, void, lv_fog, (f32 start, f32 end, f32 ratio));  /* dKy_fog_startendz_set */
 WWHD_GAME_FUNC(0x02169B68, void, lv_ram, (u8* gyorg));            /* daGy_c::modeAttackInit: breach and ram the ship */
+WWHD_GAME_FUNC(0x021695C0, void, lv_circle, (u8* gyorg));         /* daGy_c::modeCircleInit */
+WWHD_GAME_FUNC(0x02167258, void, lv_dive, (u8* gyorg));           /* daGy_c::modeDiveInit */
 WWHD_GAME_FUNC(0x0216810C, void, lv_flinch, (u8* gyorg));         /* daGy_c's hurt reaction, as after a hit it survives */
 WWHD_GAME_FUNC(0x0254DA38, void, lv_item_get, (u32 item));        /* execItemGet */
 WWHD_GAME_FUNC(0x0254F3BC, void, lv_fill_blue, (void));           /* item_func_blue_bottle: the first empty bottle */
@@ -127,7 +129,13 @@ static const u32 kGyCtrlParam = 0x7F00FF01;  /* type 1, no Gyorgs of its own, wa
 static u32 ctrl = NONE, beast = NONE;
 static u8* beast_at;                /* for the hooks, which look it up by address */
 static int health = HEALTH, slain;
-static double now, next_make, rammed, slain_at = -1, last_hit = -1;
+static double now, next_make, slain_at = -1, last_hit = -1;
+/* its patterns, each held in its own band of distance from Link: it circles wide where it can be seen, dives to stalk
+ * him far behind, and breaches to charge the boat (the only time it comes close) */
+enum { CIRCLE, STALK, CHARGE };
+static int pattern;
+static double pattern_end;
+static const double kNear[] = {3500, 5000, 0}, kFar[] = {4500, 6500, 6500};
 
 static cXyz spawn_pos;
 static csXyz spawn_angle;
@@ -311,6 +319,7 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
         } else {
             beast = make(link, GYORG_PROC, NONE, 2500, -40, ctrl);
             next_make = now + 10, health = HEALTH;  /* (if it is lost, another comes) */
+            pattern = CIRCLE, pattern_end = now + 10;
             if (beast != NONE) wwhd_log("leviathan: it surfaces");
         }
         return;
@@ -330,20 +339,29 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
     ((fopAc_ac_c*)gy)->scale = (cXyz){SIZE, SIZE, SIZE};
     static f32 body_r;
     if (flt(gy, GY_BODY_R) != body_r) body_r = flt(gy, GY_BODY_R) * SIZE, set_flt(gy, GY_BODY_R, body_r);
-    /* it circles the boat while its controller's clear-line flag for it is set (our quiet controller never sets it),
-     * and every 10 s, when it is diving or circling (modes 0, 1, 6), it breaches to ram (as Haunted sea's Gyorgs do) */
+    /* it circles the boat while its controller's clear-line flag for it is set (our quiet controller never sets it) */
     u8* c = (u8*)word(gy, GY_CTRL);
     const u32 child = word(gy, GY_CHILD);
     if (in_mem2((u32)c) && child < 8) c[CTRL_CLEAR + child] = 1;
+    /* the next pattern when this one is over (a charge once it has rammed); not while it flinches: after circling a
+     * charge or a dive, after stalking a charge from behind, after a charge mostly circling */
     const u32 mode = word(gy, GY_MODE);
-    if ((mode == 0 || mode == 1 || mode == 6) && now >= rammed + 10) lv_ram(gy), rammed = now;
-    /* a sailing boat would leave it behind: it is kept within 2500 of Link */
+    if (pattern == CHARGE && mode != 2) pattern_end = now;
+    if (now >= pattern_end && mode != 7) {
+        pattern = pattern == STALK ? CHARGE : pattern == CHARGE ? (rnd() % 3 ? CIRCLE : STALK) : (rnd() % 2 ? CHARGE : STALK);
+        if (pattern == CIRCLE) lv_circle(gy), pattern_end = now + 10 + rnd() % 7;
+        else if (pattern == STALK) lv_dive(gy), pattern_end = now + 8 + rnd() % 5;
+        else lv_ram(gy), pattern_end = now + 8;
+    }
+    /* into its band: it swims out at 1200 a second, and in at 3600, faster than the boat sails; left far behind, it is
+     * brought to the band's edge at once */
     const cXyz g = pos_of(gy);
-    const double far = dist2d(g, at);
-    if (far > 2500) {
+    const double far = dist2d(g, at), lo = kNear[pattern], hi = kFar[pattern];
+    const double want = far < lo ? fmin_(lo, far + 40) : far > hi + 3000 ? hi : far > hi ? far - 120 : far;
+    if (want != far && far > 1) {
         fopAc_ac_c* actor = (fopAc_ac_c*)gy;
-        actor->current.pos.x = (f32)(at.x + (g.x - at.x) * 2500 / far);
-        actor->current.pos.z = (f32)(at.z + (g.z - at.z) * 2500 / far);
+        actor->current.pos.x = (f32)(at.x + (g.x - at.x) * want / far);
+        actor->current.pos.z = (f32)(at.z + (g.z - at.z) * want / far);
     }
 }
 
