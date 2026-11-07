@@ -45,7 +45,7 @@ WWHD_GAME_FUNC(0x025E1988, void, lv_sound, (u32 id));             /* mDoAud_seSt
 /* daGy_c */
 #define GY_HEALTH 0x3A1             /* s8, 1 for a Gyorg */
 #define GY_CHILD 0x3C8              /* its index among its controller's children */
-#define GY_MODE 0x3CC               /* 1 circle, 2 ram, 7 hurt, 8 frozen away, 9 dying */
+#define GY_MODE 0x3CC               /* 0 dive, 1 circle, 2 ram, 6 circle with others, 7 hurt, 8 frozen away, 9 dying */
 #define GY_LAST_MODE 0x3D0
 #define GY_CTRL 0x3D4               /* its controller */
 #define GY_BODY_R 0x9B4             /* its body collider's radius, stored each execute */
@@ -331,11 +331,12 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
     static f32 body_r;
     if (flt(gy, GY_BODY_R) != body_r) body_r = flt(gy, GY_BODY_R) * SIZE, set_flt(gy, GY_BODY_R, body_r);
     /* it circles the boat while its controller's clear-line flag for it is set (our quiet controller never sets it),
-     * and every 10 s it breaches to ram */
+     * and every 10 s, when it is diving or circling (modes 0, 1, 6), it breaches to ram (as Haunted sea's Gyorgs do) */
     u8* c = (u8*)word(gy, GY_CTRL);
     const u32 child = word(gy, GY_CHILD);
     if (in_mem2((u32)c) && child < 8) c[CTRL_CLEAR + child] = 1;
-    if (word(gy, GY_MODE) == 1 && now >= rammed + 10) lv_ram(gy), rammed = now;
+    const u32 mode = word(gy, GY_MODE);
+    if ((mode == 0 || mode == 1 || mode == 6) && now >= rammed + 10) lv_ram(gy), rammed = now;
     /* a sailing boat would leave it behind: it is kept within 2500 of Link */
     const cXyz g = pos_of(gy);
     const double far = dist2d(g, at);
