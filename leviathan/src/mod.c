@@ -47,7 +47,7 @@ WWHD_GAME_FUNC(0x025E1988, void, lv_sound, (u32 id));             /* mDoAud_seSt
 /* daGy_c */
 #define GY_HEALTH 0x3A1             /* s8, 1 for a Gyorg */
 #define GY_CHILD 0x3C8              /* its index among its controller's children */
-#define GY_MODE 0x3CC               /* 0 dive, 1 circle, 2 ram, 6 circle with others, 7 hurt, 8 frozen away, 9 dying */
+#define GY_MODE 0x3CC               /* 0 dive, 1 circle, 2 ram, 4 back off after a ram, 6 circle with others, 7 hurt, 8 frozen away, 9 dying */
 #define GY_LAST_MODE 0x3D0
 #define GY_CTRL 0x3D4               /* its controller */
 #define GY_BODY_R 0x9B4             /* its body collider's radius, stored each execute */
@@ -122,6 +122,9 @@ static int has_item(u8 item) {
 
 /* ---- the Leviathan ---- */
 #define SIZE 8.f
+/* its distances and swimming speeds grow with its size (written for 8x), but no farther than the game draws it (a
+ * 100x one shows out to about 25000) */
+#define REACH (SIZE / 8 < 4.5f ? SIZE / 8 : 4.5f)
 #define HEALTH 48                   /* an arrow, the hookshot or the Boomerang take 2, a bomb or a light arrow 4 */
 static const u32 kGyCtrlParam = 0x7F00FF01;  /* type 1, no Gyorgs of its own, waits on switch 0x7F (never set at sea) */
 #define GYCTRL_PROC 0xE5
@@ -130,12 +133,15 @@ static u32 ctrl = NONE, beast = NONE;
 static u8* beast_at;                /* for the hooks, which look it up by address */
 static int health = HEALTH, slain;
 static double now, next_make, slain_at = -1, last_hit = -1;
-/* its patterns, each held in its own band of distance from Link: it circles wide where it can be seen, dives to stalk
- * him far behind, and breaches to charge the boat (the only time it comes close) */
+/* its patterns, each held in its own band of distance from Link (at 8x; REACH scales them): it circles wide where it
+ * can be seen, dives to stalk him far behind, and charges the boat (the only time it comes close): it closes in to
+ * 2500 and breaches there.
+ * modeAttackInit aims at where the ship is then and modeAttack turns after it, slower than a sailing boat, until it
+ * hits the ship or gives up: from farther off it never reached him, so through the breach it is held within 2500 */
 enum { CIRCLE, STALK, CHARGE };
-static int pattern;
+static int pattern, rammed;         /* (rammed: this charge's breach is on, 1, or over, 2) */
 static double pattern_end;
-static const double kNear[] = {3500, 5000, 0}, kFar[] = {4500, 6500, 6500};
+static const double kNear[] = {3500, 5000, 0}, kFar[] = {4500, 6500, 2500};
 
 static cXyz spawn_pos;
 static csXyz spawn_angle;
@@ -306,6 +312,13 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
 
     if (until <= 0 || !at_sea || !settled) return;
     u8* gy = beast != NONE ? lv_search(beast) : 0;
+    /* kept in Link's room: made in the room he was in, they went with it when it unloaded as he sailed on (its
+     * controller too, which the Leviathan reads through a pointer); its controller also goes with him: a Gyorg
+     * whose controller is gone deletes itself, and one left far behind lost it now and then */
+    u8* gc = ctrl != NONE ? lv_search(ctrl) : 0;
+    const s8 room = ((fopAc_ac_c*)link)->current.roomNo;
+    if (gy) ((fopAc_ac_c*)gy)->current.roomNo = room;
+    if (gc) ((fopAc_ac_c*)gc)->current.roomNo = room, ((fopAc_ac_c*)gc)->current.pos = at;
     if (slain && slain_at < 0) {  /* (an ice arrow's kill may already have taken it) */
         slain_at = now;
         wwhd_log("leviathan: it is slain");
@@ -313,11 +326,11 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
     }
     /* its controller first, the Leviathan once that exists (a process asked for is found a few steps later) */
     if (!gy && slain_at < 0 && now >= next_make) {
-        if (ctrl == NONE || !lv_search(ctrl)) {
+        if (!gc) {
             ctrl = make(link, GYCTRL_PROC, kGyCtrlParam, 0, 0, NONE);
             next_make = now + 2;
         } else {
-            beast = make(link, GYORG_PROC, NONE, 2500, -40, ctrl);
+            beast = make(link, GYORG_PROC, NONE, 2500 * REACH, -40, ctrl);
             next_make = now + 10, health = HEALTH;  /* (if it is lost, another comes) */
             pattern = CIRCLE, pattern_end = now + 10;
             if (beast != NONE) wwhd_log("leviathan: it surfaces");
@@ -343,21 +356,32 @@ WWHD_HOOK_RETURN(WWHD_ADDR_fpcEx_Handler_025DE788, leviathan_step, (u32 queue)) 
     u8* c = (u8*)word(gy, GY_CTRL);
     const u32 child = word(gy, GY_CHILD);
     if (in_mem2((u32)c) && child < 8) c[CTRL_CLEAR + child] = 1;
-    /* the next pattern when this one is over (a charge once it has rammed); not while it flinches: after circling a
-     * charge or a dive, after stalking a charge from behind, after a charge mostly circling */
+    /* the next pattern when this one is over (a charge once its breach has ended: it hit the ship or gave up); not
+     * while it flinches or backs off from a hit: after circling a charge or a dive, after stalking a charge from
+     * behind, after a charge mostly circling */
     const u32 mode = word(gy, GY_MODE);
-    if (pattern == CHARGE && mode != 2) pattern_end = now;
-    if (now >= pattern_end && mode != 7) {
+    if (pattern == CHARGE && rammed == 1 && mode != 2) {  /* (modeAttackBackInit, mode 4, follows a hit on the ship) */
+        rammed = 2, pattern_end = now;
+        wwhd_log(mode == 4 ? "leviathan: its charge hits the boat" : "leviathan: its charge misses");
+    }
+    if (now >= pattern_end && mode != 7 && mode != 4) {
         pattern = pattern == STALK ? CHARGE : pattern == CHARGE ? (rnd() % 3 ? CIRCLE : STALK) : (rnd() % 2 ? CHARGE : STALK);
         if (pattern == CIRCLE) lv_circle(gy), pattern_end = now + 10 + rnd() % 7;
         else if (pattern == STALK) lv_dive(gy), pattern_end = now + 8 + rnd() % 5;
-        else lv_ram(gy), pattern_end = now + 8;
+        else rammed = 0, pattern_end = now + 12;
     }
-    /* into its band: it swims out at 1200 a second, and in at 3600, faster than the boat sails; left far behind, it is
-     * brought to the band's edge at once */
+    /* into its band: it swims out at 1200 a second, and in at 3600, faster than the boat sails (at 8x); left very far
+     * behind, it is brought to the band's edge at once */
     const cXyz g = pos_of(gy);
-    const double far = dist2d(g, at), lo = kNear[pattern], hi = kFar[pattern];
-    const double want = far < lo ? fmin_(lo, far + 40) : far > hi + 3000 ? hi : far > hi ? far - 120 : far;
+    const double far = dist2d(g, at), lo = kNear[pattern] * REACH, hi = kFar[pattern] * REACH;
+    if (pattern == CHARGE && !rammed && far <= hi * 1.1 && mode != 7) {  /* (its own swimming takes it a little past) */
+        lv_ram(gy), rammed = 1;
+        wwhd_log("leviathan: it breaches to ram the boat");
+    }
+    double want = far < lo ? fmin_(lo, far + 40 * REACH) : far <= hi ? far : far > 9500 * REACH ? hi : fmax_(hi, far - 120 * REACH);
+    /* bigger than 8x it breaches from farther off than the game's own charge reaches: what its size added is closed in
+     * about a second */
+    if (pattern == CHARGE && rammed == 1 && mode == 2 && far > 2500) want = fmax_(2500, far - 2500 * (REACH - 1) / 30);
     if (want != far && far > 1) {
         fopAc_ac_c* actor = (fopAc_ac_c*)gy;
         actor->current.pos.x = (f32)(at.x + (g.x - at.x) * want / far);

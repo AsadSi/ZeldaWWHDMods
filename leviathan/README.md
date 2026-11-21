@@ -24,9 +24,12 @@ The Leviathan is the game's own Gyorg. Nothing from the game is included in this
 Once per logic step, after the actors run, the mod rolls once a minute while Link sails or swims far from any island
 at night. During the signs it lowers the wind (`dKyw_custom_windpower`) and blends in fog (`dKy_fog_startendz_set`);
 then it makes a quiet Gyorg controller and one Gyorg as its child with `fopAcM_create` in Link's room and process
-layer, 2500 units behind him, and keeps it at 8x (its scale, its body collider's radius, and its hit spheres). It
-switches between three of the Gyorg's own modes at random: circling (`daGy_c::modeCircleInit`) held 3500-4500 units
-from Link, diving (`modeDiveInit`) held 5000-6500 away, and charging the boat (`modeAttackInit`).
+layer, 2500 units behind him, and keeps it at 8x (its scale, its body collider's radius, and its hit spheres). Both
+are moved into Link's room as he sails on, so the room they were made in can unload behind him without taking them,
+and the controller goes with him (a Gyorg whose controller is gone deletes itself).
+It switches between three of the Gyorg's own modes at random: circling (`daGy_c::modeCircleInit`) held 3500-4500
+units from Link, diving (`modeDiveInit`) held 5000-6500 away, and charging the boat: it closes in to 2500 and
+breaches there (`modeAttackInit`), held within 2500 until its ram hits the boat or it gives up.
 
 Its health (48) is counted around the game's own hit test: before `daGy_c::checkTgHit` it gets the game's health 100,
 after it what the hit took is counted, and while some is left what the game's death or freezing set is put back and it
