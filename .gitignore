@@ -3,3 +3,18 @@ __pycache__/
 .DS_Store
 
 build/
+
+# Never commit game data or keys: disc images, game code, extracted files and saves stay
+# outside Git (README: generated from each player's own game files, into the mod's data folder).
+*.wud
+*.wux
+*.wua
+*.iso
+*.rvz
+*.gcm
+*.rpx
+*.rpl
+*.key
+keys.txt
+/game/
+/save/
